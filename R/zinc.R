@@ -13,6 +13,8 @@
 #' @examples
 BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
 
+  options(error=traceback)
+
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
   MyMN<-10 # column for the biomarker data
@@ -80,7 +82,7 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
   survey::svyquantile(~zinc, design = DHSdesign, quantiles = c(0.25,0.5,0.75))#Quantile for the total sample#
 
   boxstat1<- as.data.frame(survey::svyby(~zinc, ~regionName, DHSdesign, survey::svyquantile, quantiles=c(0.0,0.25,0.5,0.75,1), keep.var=F))#Quantile by administrative region#
-  boxstat2<- as.data.frame(survey::svyby(~zinc, ~AgeCat, DHSdesign, survey::svyquantile, quantiles=c(0.0,0.25,0.5,0.75,1), keep.var=F))#Quantile by different demographic groups#
+  #boxstat2<- as.data.frame(survey::svyby(~zinc, ~AgeCat, DHSdesign, survey::svyquantile, quantiles=c(0.0,0.25,0.5,0.75,1), keep.var=F))#Quantile by different demographic groups#
 
 
 
