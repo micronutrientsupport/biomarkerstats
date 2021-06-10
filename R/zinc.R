@@ -79,7 +79,7 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
 
   # write boxplot output by admin area # here we can replace zinc by any micronutrient
 
-  svyboxplot(serum_folate~DataUse$regionName, plot=FALSE, DHSdesign)
+  survey::svyboxplot(serum_folate~DataUse$regionName, plot=FALSE, DHSdesign)
 
 
   ####summary stats#### can we delete the unweighted stats?
