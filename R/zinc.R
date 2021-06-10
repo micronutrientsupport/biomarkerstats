@@ -13,8 +13,6 @@
 #' @examples
 BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
 
-  print(theData)
-
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
   MyMN<-10 # column for the biomarker data
@@ -88,12 +86,6 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
 
   #### end ####
 
-  # print(StatsOutput_agg)
-
-  # Return aggregated stats table
-  print(boxstat1)
-  print(boxstat2)
-  #print(TableZinc)
 
 
   return(boxstat1)
