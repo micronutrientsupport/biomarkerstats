@@ -34,7 +34,6 @@ BiomarkerData <- function(theData, groupId, biomarkerName, thresholds) {
   Flag_SmokeAdjust<-0 # Adjustment not run (0) where already adjusted in the supplied data, or smoking not recorded so cannot adjust
 
   print('Start!')
-
 }
 
 
