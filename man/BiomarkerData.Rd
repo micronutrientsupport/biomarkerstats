@@ -4,14 +4,14 @@
 \alias{BiomarkerData}
 \title{Biomarker Data}
 \usage{
-BiomarkerData(theData, groupId, biomarkerName, thresholds)
+BiomarkerData(theData, biomarkerName, groupId, thresholds)
 }
 \arguments{
 \item{theData}{the data}
 
-\item{groupId}{the group}
-
 \item{biomarkerName}{the biomarker}
+
+\item{groupId}{the group}
 
 \item{thresholds}{the thresholds}
 }

@@ -23,12 +23,6 @@ The goal of biomarkerstats is to ...
 
 ## Installation
 
-You can install the released version of biomarkerstats from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("biomarkerstats")
-```
-
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
@@ -42,6 +36,7 @@ This is a basic example which shows you how to solve a common problem:
 ```{r example}
 library(biomarkerstats)
 ## basic example code
+BiomarkerData(biomarkerstats::sampleSurvey,'zinc','WRA',null)
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
