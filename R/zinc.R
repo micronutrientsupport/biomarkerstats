@@ -84,12 +84,12 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
 
   ####summary stats#### can we delete the unweighted stats?
   #  all dataset
-  Stat1<-data.frame(describe(DataUse[,MyMN]))
+  Stat1<-data.frame(psych::describe(DataUse[,MyMN]))
   Stat2<-data.frame(t(quantile(DataUse[,MyMN],c(.25, .50, .75),na.rm=TRUE)))
   StatOutputAllData<-cbind(Stat1,Stat2) #not all content needed front end
 
   # disagg data summary
-  Stat3<-describeBy(DataUse[,MyMN],DataUse[,MyAgg],mat = TRUE,digits = 2)
+  Stat3<-psych::describeBy(DataUse[,MyMN],DataUse[,MyAgg],mat = TRUE,digits = 2)
   Stat3<-as.data.frame(Stat3) # most summary stats
 
   ##weighted summary stats## here we can replace zinc by any micronutrient
