@@ -70,10 +70,10 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
   #  make sure cluster, strat and weight always have the same name and structure (weight to divide by 1000000)
   if(Flag_SurvWeightRun == 1 & Flag_SurvWeightSUpplied ==1){
 
-    DHSdesign<-svydesign(id=DataUse$cluster, strata=DataUse$strata, weights = DataUse$weights/1000000, data = DataUse, nest = TRUE)
+    DHSdesign<-survey::svydesign(id=DataUse$cluster, strata=DataUse$strata, weights = DataUse$weights/1000000, data = DataUse, nest = TRUE)
     options("survey.lonely.psu"='adjust')
   } else {
-    DHSdesign<-svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
+    DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
   }
 
 
