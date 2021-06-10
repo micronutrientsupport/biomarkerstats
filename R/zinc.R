@@ -26,13 +26,6 @@ BiomarkerData <- function(theData, groupId, biomarkerName, thresholds) {
 
   #PhysLimits<-read.csv() # this is a table with physiological limit for each MN
   PhysLim<-300 # fixed figure until a csv to import
-  # Thresholds
-  # thresholdUpper / thresholdLower come from the function call
-  #ThresholdUpper<-100 #Can have text, e.g. "No value" and script will function correctly
-  #ThresholdLower<-80 #
-
-  # Survey weight used to convert participant data to be representative of the wider pop'n
-  #SurveyWeight<-read.csv()
 
   #### Flags to accomodate differences between surveys
   Flag_SurvWeightRun<-1 # where 1 = 'run' as not adjusted in the supplied data and 0 = 'do not run' as already adjusted
