@@ -26,15 +26,33 @@ This is a basic example which shows you how to solve a common problem:
 ``` r
 library(biomarkerstats)
 ## basic example code
-BiomarkerData(biomarkerstats::sampleSurvey,'zinc','WRA',null)
-#>       regionName statistic1 statistic2 statistic3 statistic4 statistic5
-#> Area1      Area1  16.052127   25.33760   29.79480   35.22470   49.89185
-#> Area2      Area2  16.511371   45.87771   57.35174   67.17837   89.04233
-#> Area3      Area3  16.015336   45.91764   57.40822   67.72122   98.58913
-#> Area4      Area4  10.908014   43.46807   55.91406   63.08109  108.78647
-#> Area5      Area5   3.286706   44.03831   52.81745   65.16257   95.04856
-#> Area6      Area6  32.692130   72.28256   89.67675  107.20721  152.89605
-#> Area7      Area7  27.577569   44.50112   54.20302   65.49064  105.69885
+SummaryStats(biomarkerstats::sampleSurvey,'zinc','WRA',null)
+#> 
+#> Attaching package: 'srvyr'
+#> The following object is masked from 'package:stats':
+#> 
+#>     filter
+#> # A tibble: 7 x 4
+#>     zinc out_upp out_low regionName
+#>    <dbl>   <dbl>   <dbl> <chr>     
+#> 1  10.9     92.5    14.0 Area4     
+#> 2 109.      92.5    14.0 Area4     
+#> 3  97.3     92.5    14.0 Area4     
+#> 4   3.29    96.8    12.4 Area5     
+#> 5   9.10    96.8    12.4 Area5     
+#> 6  98.1     97.0    13.0 Area7     
+#> 7 106.      97.0    13.0 Area7
+#> # A tibble: 7 x 13
+#>   regionName  mean mean_se    sd Q_q25 Q_q50 Q_q75 Q_q25_se Q_q50_se Q_q75_se
+#>   <chr>      <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>    <dbl>
+#> 1 Area1       30.7   0.676  7.35  25.3  29.8  35.2    0.891    0.841    1.27 
+#> 2 Area2       56.8   0.577 14.9   45.9  57.4  67.2    0.902    1.11     1.64 
+#> 3 Area3       56.8   1.16  15.4   45.9  57.4  67.7    1.40     1.35     2.08 
+#> 4 Area4       54.3   1.34  15.6   43.5  55.9  63.1    2.48     1.22     0.996
+#> 5 Area5       53.7   1.43  17.1   44.0  52.8  65.2    2.02     0.935    2.14 
+#> 6 Area6       89.6   1.12  24.4   72.3  89.7 107.     2.02     2.02     1.28 
+#> 7 Area7       55.8   0.744 14.8   44.5  54.2  65.5    0.893    2.32     0.908
+#> # … with 3 more variables: IQR <dbl>, out_upp <dbl>, out_low <dbl>
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`?

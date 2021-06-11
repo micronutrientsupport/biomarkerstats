@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @examples
-BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
+SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
 
   options(error=traceback)
 
@@ -76,21 +76,32 @@ BiomarkerData <- function(theData, biomarkerName, groupId, thresholds) {
     DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
   }
 
+  library(srvyr)
+  options("survey.lonely.psu"='adjust')
+  strat_design_srvyr <- DataUse %>% as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
 
-  ##weighted summary stats## here we can replace zinc by any micronutrient
+  stat <- strat_design_srvyr %>%
+    group_by(regionName) %>%
+    summarise(
+      mean = survey_mean(zinc),
+      sd = survey_sd(zinc),
+      Q = survey_quantile(zinc, c(0.25, 0.5, 0.75))
+    ) %>%
+    mutate(IQR = Q_q75 - Q_q25) %>%
+    mutate(
+      out_upp = Q_q75 + 1.5 * IQR,
+      out_low = Q_q25 - 1.5 * IQR
+    )
 
-  survey::svyquantile(~zinc, design = DHSdesign, quantiles = c(0.25,0.5,0.75))#Quantile for the total sample#
+  dataWithStats <- dplyr::left_join(stat, DataUse, by = "regionName")
+  outliers <- dataWithStats %>% select(zinc,out_upp,out_low,regionName) %>% filter(zinc< out_low | zinc>out_upp)
 
-  boxstat1<- as.data.frame(survey::svyby(~zinc, ~regionName, DHSdesign, survey::svyquantile, quantiles=c(0.0,0.25,0.5,0.75,1), keep.var=F))#Quantile by administrative region#
-  #boxstat2<- as.data.frame(survey::svyby(~zinc, ~AgeCat, DHSdesign, survey::svyquantile, quantiles=c(0.0,0.25,0.5,0.75,1), keep.var=F))#Quantile by different demographic groups#
-
+  print(outliers)
 
 
   #### end ####
 
-
-
-  return(boxstat1)
+  return(stat)
 
 
 }
