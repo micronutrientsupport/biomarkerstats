@@ -24,7 +24,10 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     psych,
-    survey
+    survey,
+    srvyr,
+    dplyr,
+    magrittr
 URL: https://github.com/micronutrientsupport/biomarkerstats
 BugReports: https://github.com/micronutrientsupport/biomarkerstats/issues
 Depends: 

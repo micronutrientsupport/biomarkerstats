@@ -7,6 +7,8 @@
 #' @param biomarkerName the biomarker
 #' @param thresholds the thresholds
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return output
 #' @export
 #'
@@ -79,35 +81,35 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   }
 
   #### Calculate weighted survey summary statistics
-  library(srvyr)
   options("survey.lonely.psu"='adjust')
   strat_design_srvyr <- DataUse %>%
-    mutate(regionName = as.factor(regionName)) %>%
-    mutate(zinc = as.numeric(zinc)) %>%
-    as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
+    srvyr::mutate(regionName = as.factor(regionName)) %>%
+    srvyr::mutate(zinc = as.numeric(zinc)) %>%
+    srvyr::as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
 
   stat <- strat_design_srvyr %>%
-    group_by(regionName) %>%
-    summarise(
-      mean = survey_mean(zinc),
-      sd = survey_sd(zinc),
-      Q = survey_quantile(zinc, c(0.25, 0.5, 0.75)),
+    srvyr::group_by(regionName) %>%
+    srvyr::summarise(
+      mean = srvyr::survey_mean(zinc),
+      sd = srvyr::survey_sd(zinc),
+      Q = srvyr::survey_quantile(zinc, c(0.25, 0.5, 0.75)),
     ) %>%
-    mutate(IQR = Q_q75 - Q_q25) %>%
-    mutate(
+    srvyr::mutate(IQR = Q_q75 - Q_q25) %>%
+    srvyr::mutate(
       out_upp = Q_q75 + 1.5 * IQR,
       out_low = Q_q25 - 1.5 * IQR
     )
 
   #### Also need N count.  For now calculate using 'base R' and append to the srvyr stats table
-  basicSummary <- describeBy(DataUse$zinc,DataUse$regionName,mat = TRUE, digits = 2) %>% select(
+  basicSummary <- psych::describeBy(DataUse$zinc,DataUse$regionName,mat = TRUE, digits = 2) %>% srvyr::select(
     group1, n
   )
-  combinedStats <- left_join(stat, basicSummary, by = c("regionName" = "group1"))
+  combinedStats <- dplyr::left_join(stat, basicSummary, by = c("regionName" = "group1"))
 
   #### Select the outliers
   dataWithStats <- dplyr::left_join(stat, DataUse, by = "regionName")
-  outliers <- dataWithStats %>% select(zinc,out_upp,out_low,regionName) %>% filter(zinc< out_low | zinc>out_upp)
+  #outliers <- dataWithStats %>% srvyr::select(zinc,out_upp,out_low,regionName) %>% filter(zinc< out_low | zinc>out_upp)
+  #print(outliers)
 
   #### end ####
   return(combinedStats)
