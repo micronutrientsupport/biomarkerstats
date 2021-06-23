@@ -13,8 +13,6 @@
 #' @examples
 SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
 
-  options(error=traceback)
-
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
   MyMN<-10 # column for the biomarker data
@@ -22,10 +20,10 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   DataUse<-theData # this is the participant and biomarker data
 
   #Make sure the biomarker column values are numeric
-  DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN]))
+  #DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN]))
 
   #PhysLimits<-read.csv() # this is a table with physiological limit for each MN
-  PhysLim<-300 # fixed figure until a csv to import
+  PhysLim<-6000 # fixed figure until a csv to import
 
   #### Flags to accomodate differences between surveys
   Flag_SurvWeightRun<-0 # where 1 = 'run' as not adjusted in the supplied data and 0 = 'do not run' as already adjusted
@@ -33,13 +31,16 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   Flag_HaemAltAdjust<-0  # Adjustment not run (0) where already adjusted in the supplied data, run if = 1.
   Flag_SmokeAdjust<-0 # Adjustment not run (0) where already adjusted in the supplied data, or smoking not recorded so cannot adjust
 
-
   #### Eligible data selection ####
-  DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN])) #Make sure the biomarker column values are numeric
+  #DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN])) #Make sure the biomarker column values are numeric
+  DataUse[,MyMN] = as.numeric(unlist(DataUse[,MyMN]))
+
 
   DataUse <- DataUse[!(is.na(DataUse[,MyMN])),] #omit row with NA in the col of interest
 
+
   DataUse<-DataUse[which(DataUse[,MyMN]<=PhysLim),]   #Excluding physiological implausible concentrations for the specific MN
+
 
   # assign age categories, then exclude the '0' rows
   DataUse$AgeCat<-ifelse(DataUse$groupId=="WRA",
@@ -53,10 +54,12 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
                                               0))))
 
   DataUse<-DataUse[which(DataUse$AgeCat>0),]
-
   DataUse$DemoGpCat<-paste(DataUse$groupId,".",DataUse$AgeCat)
 
-  DataUse<-DataUse[which(DataUse$isPregnant==0),]  #exclude pregnant
+
+  DataUse<-DataUse[which(DataUse$isPregnant!=1),]  #exclude pregnant
+
+
 
   #### Adjustments ####
 
@@ -69,23 +72,26 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   # Adjust by survey weight where not already done AND weights supplied, *else* run without use weights to get common output format
   #  make sure cluster, strat and weight always have the same name and structure (weight to divide by 1000000)
   if(Flag_SurvWeightRun == 1 & Flag_SurvWeightSUpplied ==1){
-
     DHSdesign<-survey::svydesign(id=DataUse$cluster, strata=DataUse$strata, weights = DataUse$weights/1000000, data = DataUse, nest = TRUE)
     options("survey.lonely.psu"='adjust')
   } else {
     DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
   }
 
+  #### Calculate weighted survey summary statistics
   library(srvyr)
   options("survey.lonely.psu"='adjust')
-  strat_design_srvyr <- DataUse %>% as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
+  strat_design_srvyr <- DataUse %>%
+    mutate(regionName = as.factor(regionName)) %>%
+    mutate(zinc = as.numeric(zinc)) %>%
+    as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
 
   stat <- strat_design_srvyr %>%
     group_by(regionName) %>%
     summarise(
       mean = survey_mean(zinc),
       sd = survey_sd(zinc),
-      Q = survey_quantile(zinc, c(0.25, 0.5, 0.75))
+      Q = survey_quantile(zinc, c(0.25, 0.5, 0.75)),
     ) %>%
     mutate(IQR = Q_q75 - Q_q25) %>%
     mutate(
@@ -93,17 +99,18 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
       out_low = Q_q25 - 1.5 * IQR
     )
 
+  #### Also need N count.  For now calculate using 'base R' and append to the srvyr stats table
+  basicSummary <- describeBy(DataUse$zinc,DataUse$regionName,mat = TRUE, digits = 2) %>% select(
+    group1, n
+  )
+  combinedStats <- left_join(stat, basicSummary, by = c("regionName" = "group1"))
+
+  #### Select the outliers
   dataWithStats <- dplyr::left_join(stat, DataUse, by = "regionName")
   outliers <- dataWithStats %>% select(zinc,out_upp,out_low,regionName) %>% filter(zinc< out_low | zinc>out_upp)
 
-  print(outliers)
-
-
   #### end ####
-
-  return(stat)
-
-
+  return(combinedStats)
 }
 
 
