@@ -4,7 +4,8 @@
 #'
 #' @param theData the data
 #' @param groupId the group
-#' @param biomarkerName the biomarker
+#' @param biomarkerField the field name of the biomarker measurement data
+#' @param aggregationField the field name to aggregate by
 #' @param thresholds the thresholds
 #'
 #' @importFrom magrittr %>%
@@ -13,16 +14,15 @@
 #' @export
 #'
 #' @examples
-SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
+SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thresholds) {
 
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
-  MyMN<-10 # column for the biomarker data
-  MyAgg<-2 # this is the aggregate data field to be used
   DataUse<-theData # this is the participant and biomarker data
-
-  #Make sure the biomarker column values are numeric
-  #DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN]))
+  aggField<-aggregationField # this is name of the data field to be used for aggregation
+  bmField<-biomarkerField # column name for the biomarker data
+  bmName<-biomarkerField
+  MyMN<-which( colnames(DataUse)==bmField ) # column number for the biomarker data
 
   #PhysLimits<-read.csv() # this is a table with physiological limit for each MN
   PhysLim<-6000 # fixed figure until a csv to import
@@ -34,16 +34,13 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   Flag_SmokeAdjust<-0 # Adjustment not run (0) where already adjusted in the supplied data, or smoking not recorded so cannot adjust
 
   #### Eligible data selection ####
-  #DataUse[,MyMN] = as.numeric(as.character(DataUse[,MyMN])) #Make sure the biomarker column values are numeric
-  DataUse[,MyMN] = as.numeric(unlist(DataUse[,MyMN]))
+  DataUse[,MyMN] = as.numeric(unlist(get(bmField,DataUse))) #Make sure the biomarker column values are numeric
 
 
-  DataUse <- DataUse[!(is.na(DataUse[,MyMN])),] #omit row with NA in the col of interest
-  DataUse <- DataUse[!(is.na(DataUse[,MyAgg])),] #omit row with NA in the aggregation column
-  DataUse <- DataUse[!(is.null(DataUse[,MyAgg])),]
+  DataUse <- DataUse[!(is.na(get(bmField,DataUse))),] #omit row with NA in the col of interest
+  DataUse <- DataUse[!(is.na(get(aggField,DataUse))),] #omit row with NA in the aggregation column
 
-
-  DataUse<-DataUse[which(DataUse[,MyMN]<=PhysLim),]   #Excluding physiological implausible concentrations for the specific MN
+  DataUse<-DataUse[which(get(bmField,DataUse)<=PhysLim),]   #Excluding physiological implausible concentrations for the specific MN
 
 
   # assign age categories, then exclude the '0' rows
@@ -85,16 +82,18 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
   #### Calculate weighted survey summary statistics
   options("survey.lonely.psu"='adjust')
   strat_design_srvyr <- DataUse %>%
-    srvyr::mutate(regionName = as.factor(regionName)) %>%
-    srvyr::mutate(zinc = as.numeric(zinc)) %>%
+    srvyr::rename("aggregation"=aggField) %>%
+    srvyr::rename("biomarker"=bmName) %>%
+    srvyr::mutate(aggregation = as.factor(aggregation)) %>%
+    srvyr::mutate(biomarker = as.numeric(biomarker)) %>%
     srvyr::as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
 
   stat <- strat_design_srvyr %>%
-    srvyr::group_by(regionName) %>%
+    srvyr::group_by(aggregation) %>%
     srvyr::summarise(
-      mean = srvyr::survey_mean(zinc),
-      sd = srvyr::survey_sd(zinc),
-      Q = srvyr::survey_quantile(zinc, c(0.25, 0.5, 0.75)),
+      mean = srvyr::survey_mean(biomarker),
+      sd = srvyr::survey_sd(biomarker),
+      Q = srvyr::survey_quantile(biomarker, c(0.25, 0.5, 0.75)),
     ) %>%
     srvyr::mutate(IQR = Q_q75 - Q_q25) %>%
     srvyr::mutate(
@@ -103,15 +102,16 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
     )
 
   #### Also need N count.  For now calculate using 'base R' and append to the srvyr stats table
-  basicSummary <- psych::describeBy(DataUse$zinc,DataUse$regionName,mat = TRUE, digits = 2) %>% srvyr::select(
+  basicSummary <- psych::describeBy(get(bmField,DataUse),get(aggField,DataUse),mat = TRUE, digits = 2) %>% srvyr::select(
     group1, n
   )
-  combinedStats <- dplyr::left_join(stat, basicSummary, by = c("regionName" = "group1"))
+  combinedStats <- dplyr::left_join(stat, basicSummary, by = c("aggregation" = "group1"))
 
   #### Select the outliers
-  dataWithStats <- dplyr::left_join(stat, DataUse, by = "regionName")
-  #outliers <- dataWithStats %>% srvyr::select(zinc,out_upp,out_low,regionName) %>% filter(zinc< out_low | zinc>out_upp)
-  #print(outliers)
+  dataWithStats <- dplyr::left_join(stat, DataUse, by = c("aggregation" = aggField))
+  #print(dataWithStats)
+  outliers <- dataWithStats %>% srvyr::rename("biomarker"=bmName) %>% srvyr::select(biomarker,out_upp,out_low,aggregation) %>% srvyr::filter(biomarker< out_low | biomarker>out_upp)
+  print(outliers)
 
   #### end ####
   return(combinedStats)
