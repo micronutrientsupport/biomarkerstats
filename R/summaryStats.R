@@ -40,6 +40,7 @@ SummaryStats <- function(theData, biomarkerName, groupId, thresholds) {
 
   DataUse <- DataUse[!(is.na(DataUse[,MyMN])),] #omit row with NA in the col of interest
   DataUse <- DataUse[!(is.na(DataUse[,MyAgg])),] #omit row with NA in the aggregation column
+  DataUse <- DataUse[!(is.null(DataUse[,MyAgg])),]
 
 
   DataUse<-DataUse[which(DataUse[,MyMN]<=PhysLim),]   #Excluding physiological implausible concentrations for the specific MN
