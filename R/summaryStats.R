@@ -17,9 +17,6 @@
 #' @examples
 SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thresholds) {
 
-  # Defaulting isPregnant to 0 where NA
-  theData[which(is.na(theData$isPregnant)),]$isPregnant <- 0
-
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
   DataUse<-theData # this is the participant and biomarker data
@@ -28,6 +25,12 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   bmName<-biomarkerField
   MyMN<-which( colnames(DataUse)==bmField ) # column number for the biomarker data
   MyAgg<-which( colnames(DataUse)==aggField ) # column number for the aggregation field
+
+  # Defaulting isPregnant to 0 where NA
+  DataUse[which(is.na(DataUse$isPregnant)),]$isPregnant <- 0
+  DataUse[which(is.na(DataUse$surveyStrata)),]$surveyStrata <- 0
+  DataUse$surveyWeights <- as.integer(DataUse$surveyWeights)
+  DataUse$surveyStrata <- as.integer(DataUse$surveyStrata)
 
   #PhysLimits<-read.csv() # this is a table with physiological limit for each MN
   PhysLim<-6000 # fixed figure until a csv to import
@@ -40,7 +43,6 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 
   #### Eligible data selection ####
   DataUse[,MyMN] = as.numeric(unlist(get(bmField,DataUse))) #Make sure the biomarker column values are numeric
-
 
   DataUse <- DataUse[!(is.na(get(bmField,DataUse))),] #omit row with NA in the col of interest
   DataUse <- DataUse[!(is.na(get(aggField,DataUse))),] #omit row with NA in the aggregation column
