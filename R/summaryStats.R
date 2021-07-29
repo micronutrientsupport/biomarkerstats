@@ -116,7 +116,13 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   #### Calculate deficiency percentages for all threshold levels
   for(thresholdName in names(thresholds)) {
     thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~DataUse[,MyAgg], DHSdesign, survey::svyciprop, vartype="ci")
+    # Rename output fields as appropriate
+    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "DataUse[, MyAgg]"] <- "aggregation"
+    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
+    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
+    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
   }
+  print(thresh)
 
   #### Calculate weighted survey summary statistics
   options("survey.lonely.psu"='adjust')
@@ -149,10 +155,20 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 
   combinedStats <- dplyr::left_join(stat, basicSummary, by = c("aggregation" = "group1"))
 
+  # Select only the fields needed and rename as appropriate
+  combinedStats <- combinedStats %>%
+    srvyr::rename("median"=Q_q50,
+                  "lowerQuartile"=Q_q25,
+                  "upperQuartile"=Q_q75,
+                  "upperOutlier"=out_upp,
+                  "lowerOutlier"=out_low,
+                  "standardDeviation"=sd) %>%
+    srvyr::select(aggregation, mean, median, standardDeviation, lowerQuartile, upperQuartile, upperOutlier, lowerOutlier, n)
+
   #### Select the outliers
   dataWithStats <- dplyr::left_join(stat, DataUse, by = c("aggregation" = aggField))
   #print(dataWithStats)
-  outliers <- dataWithStats %>% srvyr::rename("biomarker"=bmName) %>% srvyr::select(biomarker,out_upp,out_low,aggregation) %>% srvyr::filter(biomarker< out_low | biomarker>out_upp)
+  outliers <- dataWithStats %>% srvyr::rename("measurement"=bmName) %>% srvyr::filter(measurement< out_low | measurement>out_upp) %>% srvyr::select(measurement, aggregation)
   #print(outliers)
 
   output <- list(
