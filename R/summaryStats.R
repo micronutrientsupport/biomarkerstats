@@ -73,11 +73,10 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 
   # E.g. haemoglobin adjustment for smoking
 
-  #### Calculate deficiency / excess
+  #### Calculate deficiency / excess ####
 
   # iterate over the thresholds proivided and update DataUse to hold 1/0 values
   # if those thresholds are met
-
   for(thresholdName in names(thresholds)) {
     #print(thresholdName)
     #print(thresholds[[thresholdName]])
@@ -97,9 +96,8 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
     }
   }
 
-  print(DataUse)
-
   if(bmName == 'zinc') {
+    # Something special for zinc as its thresholds are complicated
   }
 
  #### Create Survey Weights for deficiency calculations ####
@@ -111,6 +109,33 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 } else {
   DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
 }
+
+  #### Stats for the survey as a whole ####
+  mean <- survey::svymean(~DataUse[,MyMN], DHSdesign, ci=FALSE)
+  quant <- survey::svyquantile(~DataUse[,MyMN], DHSdesign, c(.25,.5,.75),ci=FALSE)
+  sd <- jtools::svysd(~DataUse[,MyMN], DHSdesign)
+  n <- nrow(DataUse)
+  summary <- cbind(mean, quant, sd, n)
+  summary <- data.frame(summary)
+  rownames(summary) <- c(1)
+
+  # Rename output fields as appropriate
+  summary <- summary %>%
+    srvyr::mutate(IQR = X0.75 - X0.25) %>%
+    srvyr::mutate(
+      out_upp = X0.75 + 1.5 * IQR,
+      out_low = X0.25 - 1.5 * IQR
+    ) %>%
+    srvyr::rename("median"=X0.5,
+                  "lowerQuartile"=X0.25,
+                  "upperQuartile"=X0.75,
+                  "upperOutlier"=out_upp,
+                  "lowerOutlier"=out_low,
+                  "standardDeviation"=sd) %>%
+  srvyr::select(mean, median, standardDeviation, lowerQuartile, upperQuartile, upperOutlier, lowerOutlier, n)
+
+
+
 
   thresh = list()
   #### Calculate deficiency percentages for all threshold levels
@@ -172,9 +197,10 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   #print(outliers)
 
   output <- list(
-    "summaryStats" = combinedStats,
-    "outliers" = outliers,
-    "thresholds" = thresh
+    "totalStats" = summary,
+    "aggregatedStats" = combinedStats,
+    "aggregatedOutliers" = outliers,
+    "aggregatedThresholds" = thresh
   )
 
   #### end ####
