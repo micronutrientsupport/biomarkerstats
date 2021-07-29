@@ -1,3 +1,4 @@
+
 #' Biomarker Data
 #'
 #' Does some stuff
@@ -16,6 +17,9 @@
 #' @examples
 SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thresholds) {
 
+  # Defaulting isPregnant to 0 where NA
+  theData[which(is.na(theData$isPregnant)),]$isPregnant <- 0
+
   #### Bring in data ####
   MyGp<-groupId  # change this to change the demographic group data used
   DataUse<-theData # this is the participant and biomarker data
@@ -23,6 +27,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   bmField<-biomarkerField # column name for the biomarker data
   bmName<-biomarkerField
   MyMN<-which( colnames(DataUse)==bmField ) # column number for the biomarker data
+  MyAgg<-which( colnames(DataUse)==aggField ) # column number for the aggregation field
 
   #PhysLimits<-read.csv() # this is a table with physiological limit for each MN
   PhysLim<-6000 # fixed figure until a csv to import
@@ -60,23 +65,55 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 
   DataUse<-DataUse[which(DataUse$isPregnant!=1),]  #exclude pregnant
 
-
-
   #### Adjustments ####
 
   # E.g. haemoglobin adjustment for altitude
 
   # E.g. haemoglobin adjustment for smoking
 
+  #### Calculate deficiency / excess
 
-  #### Survey Weights ####
-  # Adjust by survey weight where not already done AND weights supplied, *else* run without use weights to get common output format
-  #  make sure cluster, strat and weight always have the same name and structure (weight to divide by 1000000)
-  if(Flag_SurvWeightRun == 1 & Flag_SurvWeightSUpplied ==1){
+  # iterate over the thresholds proivided and update DataUse to hold 1/0 values
+  # if those thresholds are met
+
+  for(thresholdName in names(thresholds)) {
+    #print(thresholdName)
+    #print(thresholds[[thresholdName]])
+
+    lower <- as.numeric(thresholds[[thresholdName]]$lower)
+    upper <- as.numeric(thresholds[[thresholdName]]$upper)
+
+    # Default case for 'basic' thresholds
+    if(is.null(lower)) {
+      DataUse[[thresholdName]]=ifelse(DataUse[,MyMN]<=upper, 1, 0)
+    }
+    else if (is.null(upper)) {
+      DataUse[[thresholdName]]=ifelse(DataUse[,MyMN]>lower, 1, 0)
+    }
+    else {
+      DataUse[[thresholdName]]=ifelse(DataUse[,MyMN]>lower & DataUse[,MyMN]<=upper, 1, 0)
+    }
+  }
+
+  print(DataUse)
+
+  if(bmName == 'zinc') {
+  }
+
+ #### Create Survey Weights for deficiency calculations ####
+ # Adjust by survey weight where not already done AND weights supplied, *else* run without use weights to get common output format
+ #  make sure cluster, strat and weight always have the same name and structure (weight to divide by 1000000)
+ if(Flag_SurvWeightRun == 1 & Flag_SurvWeightSUpplied ==1){
     DHSdesign<-survey::svydesign(id=DataUse$cluster, strata=DataUse$strata, weights = DataUse$weights/1000000, data = DataUse, nest = TRUE)
-    options("survey.lonely.psu"='adjust')
-  } else {
-    DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
+   options("survey.lonely.psu"='adjust')
+} else {
+  DHSdesign<-survey::svydesign(ids = ~1, strata=NULL , weights = NULL , data = DataUse)
+}
+
+  thresh = list()
+  #### Calculate deficiency percentages for all threshold levels
+  for(thresholdName in names(thresholds)) {
+    thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~DataUse[,MyAgg], DHSdesign, survey::svyciprop, vartype="ci")
   }
 
   #### Calculate weighted survey summary statistics
@@ -87,7 +124,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
     srvyr::mutate(aggregation = as.factor(aggregation)) %>%
     srvyr::mutate(biomarker = as.numeric(biomarker)) %>%
     srvyr::as_survey_design(id = surveyCluster, strata = surveyStrata, weights = surveyWeights, nest = TRUE)
-
+  #print(strat_design_srvyr)
   stat <- strat_design_srvyr %>%
     srvyr::group_by(aggregation) %>%
     srvyr::summarise(
@@ -100,21 +137,28 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
       out_upp = Q_q75 + 1.5 * IQR,
       out_low = Q_q25 - 1.5 * IQR
     )
+  stat$aggregation <- as.integer(stat$aggregation)
 
   #### Also need N count.  For now calculate using 'base R' and append to the srvyr stats table
   basicSummary <- psych::describeBy(get(bmField,DataUse),get(aggField,DataUse),mat = TRUE, digits = 2) %>% srvyr::select(
     group1, n
   )
+  basicSummary$group1 <- as.integer(basicSummary$group1)
+
   combinedStats <- dplyr::left_join(stat, basicSummary, by = c("aggregation" = "group1"))
 
   #### Select the outliers
   dataWithStats <- dplyr::left_join(stat, DataUse, by = c("aggregation" = aggField))
   #print(dataWithStats)
   outliers <- dataWithStats %>% srvyr::rename("biomarker"=bmName) %>% srvyr::select(biomarker,out_upp,out_low,aggregation) %>% srvyr::filter(biomarker< out_low | biomarker>out_upp)
-  print(outliers)
+  #print(outliers)
+
+  output <- list(
+    "summaryStats" = combinedStats,
+    "outliers" = outliers,
+    "thresholds" = thresh
+  )
 
   #### end ####
-  return(combinedStats)
+  return(output)
 }
-
-
