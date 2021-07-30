@@ -119,6 +119,10 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   summary <- data.frame(summary)
   rownames(summary) <- c(1)
 
+
+  print(colnames(summary))
+  print(summary)
+
   # Rename output fields as appropriate
   summary <- summary %>%
     srvyr::mutate(IQR = X0.75 - X0.25) %>%
