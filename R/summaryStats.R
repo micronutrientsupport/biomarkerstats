@@ -147,7 +147,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
   }
-  print(thresh)
+  #print(thresh)
 
   #### Calculate weighted survey summary statistics
   options("survey.lonely.psu"='adjust')
