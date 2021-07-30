@@ -26,6 +26,7 @@ Imports:
     psych,
     survey,
     srvyr,
+    jtools,
     dplyr,
     magrittr
 URL: https://github.com/micronutrientsupport/biomarkerstats

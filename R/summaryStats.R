@@ -113,6 +113,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   #### Stats for the survey as a whole ####
   mean <- survey::svymean(~DataUse[,MyMN], DHSdesign, ci=FALSE)
   quant <- survey::svyquantile(~DataUse[,MyMN], DHSdesign, c(.25,.5,.75),ci=FALSE)
+  colnames(quant) <- c("X0.25","X0.5","X0.75")
   sd <- jtools::svysd(~DataUse[,MyMN], DHSdesign)
   n <- nrow(DataUse)
   summary <- cbind(mean, quant, sd, n)
