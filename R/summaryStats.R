@@ -122,8 +122,8 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   summary <- data.frame(summary)
   rownames(summary) <- c(1)
 
-
   print(colnames(summary))
+  colnames(summary) <- c("mean", "X0.25", "X0.5", "X0.75", "sd", "n")
   print(summary)
 
   # Rename output fields as appropriate
