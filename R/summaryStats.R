@@ -43,6 +43,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
 
   #### Eligible data selection ####
   DataUse[, MyMN] <- as.numeric(unlist(get(bmField, DataUse))) # Make sure the biomarker column values are numeric
+  DataUse[, MyAgg] <- as.character(unlist(get(aggField, DataUse))) # Make sure the aggregation column values are char
 
   DataUse <- DataUse[!(is.na(get(bmField, DataUse))), ] # omit row with NA in the col of interest
   DataUse <- DataUse[!(is.na(get(aggField, DataUse))), ] # omit row with NA in the aggregation column
@@ -175,14 +176,15 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
       out_upp = Q_q75 + 1.5 * IQR,
       out_low = Q_q25 - 1.5 * IQR
     )
-  stat$aggregation <- as.integer(stat$aggregation)
+
+  stat$aggregation <- as.character(stat$aggregation)
 
   #### Also need N count.  For now calculate using 'base R' and append to the srvyr stats table
-  basicSummary <- psych::describeBy(get(bmField, DataUse), get(aggField, DataUse), mat = TRUE, digits = 2) %>% srvyr::select(
+  basicSummary <- psych::describeBy(get(bmField,DataUse),get(aggField,DataUse),mat = TRUE, digits = 2) %>% srvyr::select(
     group1, n
   )
-  basicSummary$group1 <- as.integer(basicSummary$group1)
 
+  basicSummary$group1 <- as.character(basicSummary$group1)
   combinedStats <- dplyr::left_join(stat, basicSummary, by = c("aggregation" = "group1"))
 
   # Select only the fields needed and rename as appropriate
