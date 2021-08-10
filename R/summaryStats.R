@@ -121,7 +121,6 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
   n <- nrow(DataUse)
   summary <- cbind(mean, quant, sd, n)
   summary <- data.frame(summary)
-  rownames(summary) <- c(1)
 
   # Rename output fields as appropriate
   summary <- summary %>%
@@ -139,7 +138,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
       "standardDeviation" = sd
     ) %>%
     srvyr::select(mean, median, standardDeviation, lowerQuartile, upperQuartile, upperOutlier, lowerOutlier, n)
-
+  rownames(summary) <- c()
 
 
 
@@ -152,6 +151,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
+    rownames(thresh[[thresholdName]]) <- c()
   }
   # print(thresh)
 
@@ -198,6 +198,7 @@ SummaryStats <- function(theData, biomarkerField, aggregationField, groupId, thr
       "standardDeviation" = sd
     ) %>%
     srvyr::select(aggregation, mean, median, standardDeviation, lowerQuartile, upperQuartile, upperOutlier, lowerOutlier, n)
+  rownames(combinedStats) <- c()
 
   #### Select the outliers
   dataWithStats <- dplyr::left_join(stat, DataUse, by = c("aggregation" = aggField))
