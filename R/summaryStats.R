@@ -26,7 +26,6 @@ SummaryStats <- function(theData,
                          Flag_HaemAltAdjust = FALSE,
                          Flag_SmokeAdjust = FALSE  
                          ){
-                  
                   DataUse <- theData
                   
                   # Assign the correct datatypes and remove incomplete data fields
