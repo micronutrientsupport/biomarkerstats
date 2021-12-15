@@ -10,7 +10,6 @@
 #' 
 #' @importFrom magrittr %>%
 #' @import srvyr jtools survey dplyr
-NULL
 
 #' @return output
 #' @export
@@ -100,7 +99,7 @@ SummaryStats <- function(theData,
                   sd <- jtools::svysd(~ DataUse[, biomarkerField], DHSdesign)
                   n <- nrow(DataUse)
                   summary <- as.data.frame(cbind(mean, quantiles, sd, n))
-                  summary <- rename(summary, 
+                  summary <- srvyr::rename(summary, 
                                     lowerQuartile = "0.25",
                                     median = "0.5", 
                                     upperQuartile = "0.75",
