@@ -1,4 +1,4 @@
-#' Biomarkerstats
+#' Biomarker Data
 #'
 #' Computes summary statistics for National Micronutrient Surveys
 #'
