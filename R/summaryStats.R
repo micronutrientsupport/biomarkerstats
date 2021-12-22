@@ -1,6 +1,6 @@
-#' Biomarker Stats
+#' Biomarkerstats
 #'
-#' Computes summary statistics National Micronutrient Surveys
+#' Computes summary statistics for National Micronutrient Surveys
 #'
 #' @param theData the data
 #' @param groupId the group
@@ -10,8 +10,7 @@
 #' 
 #' @importFrom magrittr %>%
 #' @import srvyr jtools survey dplyr
-NULL
-
+#' 
 #' @return output
 #' @export
 #' @examples
@@ -59,7 +58,7 @@ SummaryStats <- function(theData,
                                                         ifelse(id == "SAC", 
                                                                ifelse(age >= (5*y) & age < (12*y), 1, ifelse(age >= (12*y) & age < (15*y), 2, NA)), 
                                                                ifelse(id == "MEN",
-                                                                      ifelse(age >= (15*y) & age < (30*y), 1, ifelse(age >= (30*y) & age < (54*y), 2, NA)),
+                                                                      ifelse(age >= (15*y) & age < (30*y), 1, ifelse(age >= (30*y) & age < (55*y), 2, NA)),
                                                                       NA
                                                                )
                                                         )
