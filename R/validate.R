@@ -21,11 +21,11 @@
 #' 
 #' @examples 
 #' # To invoke validate function 
-#' valiadate(theData, biomarkerField = c("ferritin"),
+#' validate(theData, biomarkerField = c("ferritin"),
 #' aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
 
 
-valiadate <- function (theData, 
+validate <- function (theData, 
                        biomarkerField, 
                        aggregationField, 
                        groupId, 
@@ -57,17 +57,37 @@ valiadate <- function (theData,
                 DataUse[,biomarkerField] <- as.numeric(DataUse[,biomarkerField])
                 DataUse[,aggregationField] <- as.character(DataUse[,aggregationField])
                 DataUse <- DataUse[complete.cases(DataUse[biomarkerField]) ,]
-                # Replace this line after testing to keep values only greater than 0
-                # DataUse[complete.cases(DataUse[biomarkerField]) & DataUse[biomarkerField] > 0 ,]
                 DataUse <- DataUse[complete.cases(DataUse[aggregationField]),]
+                DataUse <- DataUse[DataUse[,"groupId"] == groupId,]
                 DataUse[,"isPregnant"] <- as.logical(DataUse[,"isPregnant"])
                 DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
                 # Select values that are under the physiological limit for micronutrients
                 PhysLim <- 6000
                 DataUse <- DataUse[which(get(biomarkerField, DataUse) <= PhysLim), ] 
                 return(DataUse)
-        }  
+        }     
         DataUse <- preprocessData(theData)
+        
+        if (0 %in% DataUse[,biomarkerField]) {
+                message("There is at least one 0 value observed for ", biomarkerField,
+                        ". All 0 values will be changed to 0.001 in order to 
+                        invoke the Summarystats function")      
+        }
+        
+        if (sum((DataUse[[biomarkerField]] < 0), na.rm = TRUE) > 0) {
+                message("There are negative values found for ", biomarkerField,
+                        ". Any rows containing negative values for this 
+                        biomarker will be removed")      
+        }
+        
+        zeroNegative <- function (DataUse){
+                DataUse[,biomarkerField] <- ifelse(DataUse[,biomarkerField] == 0,
+                                                   0.001,
+                                                   DataUse[,biomarkerField])
+                DataUse <- subset(DataUse, get(biomarkerField) > 0)
+                return(DataUse)
+        } 
+        DataUse <- zeroNegative(DataUse)
         
         if (length(Filter(function(x) x <2, with(DataUse, table(get(aggregationField))))) > 0) {
                 stop("the number of observations in the aggregate group is less than 2")      

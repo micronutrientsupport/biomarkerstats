@@ -4,12 +4,16 @@
 #'
 #' @param theData the data
 #' @param groupId the group
-#' @param biomarkerField the field name of the biomarker measurement data
+#' @param biomarkerField the field name of the biomarker measurement data. 
+#' When a zero value is observed in the biomarkerField, there is a nominal value
+#' of 0.001 added to the zero value in order to #' facilitate statistical 
+#' computation (in particular Log transform in the BRINDA package)
+#' 
 #' @param aggregationField the field name to aggregate by
 #' @param thresholds the thresholds
 #' 
 #' @importFrom magrittr %>%
-#' @import srvyr jtools survey dplyr
+#' @import srvyr jtools survey dplyr BRINDA
 #' 
 #' @return output
 #' @export
@@ -34,9 +38,8 @@ SummaryStats <- function(theData,
                     DataUse[,biomarkerField] <- as.numeric(DataUse[,biomarkerField])
                     DataUse[,aggregationField] <- as.character(DataUse[,aggregationField])
                     DataUse <- DataUse[complete.cases(DataUse[biomarkerField]) ,]
-                    # Replace this line after testing to keep values only greater than 0
-                    # DataUse[complete.cases(DataUse[biomarkerField]) & DataUse[biomarkerField] > 0 ,]
                     DataUse <- DataUse[complete.cases(DataUse[aggregationField]),]
+                    DataUse <- DataUse[DataUse[,"groupId"] == groupId,]
                     DataUse[,"isPregnant"] <- as.logical(DataUse[,"isPregnant"])
                     DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
                     # Select values that are under the physiological limit for micronutrients
@@ -45,7 +48,16 @@ SummaryStats <- function(theData,
                     return(DataUse)
                   }        
                   DataUse <- preprocessData(DataUse)
-                  
+                 
+                  zeroNegative <- function (DataUse){
+                    DataUse[,biomarkerField] <- ifelse(DataUse[,biomarkerField] == 0,
+                                                       0.001,
+                                                       DataUse[,biomarkerField])
+                    DataUse <- subset(DataUse, get(biomarkerField) > 0)
+                    return(DataUse)
+                  } 
+                  DataUse <- zeroNegative(DataUse)
+                    
                   # Assign age categories to individuals
                   ageCategories <- function (DataUse){
                     id <- DataUse[,"groupId"]  
