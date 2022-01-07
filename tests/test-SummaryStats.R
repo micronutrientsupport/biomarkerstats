@@ -1,9 +1,25 @@
-# test new function 
-# Wealth Quintile 
+#' Tests SummaryStats function over multiple datasets
+#'
+#' @import rstudioapi
+#' 
+#' @return new_results_WQ new_results_rN testnewUr
+#' @export
+#' @examples
+#' SummaryStats(theData, biomarkerField = c("ferritin"),
+#' aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
+#' INSERT : data(dataname) ???
 
-setwd("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3")
-files <- strsplit(list.files(, "-wealthQuintile-theData.rda"), "-wealthQuintile-theData.rda")
-files <- lapply(files, function(x) gsub(x = x, pattern = "S3-", replacement = ""))
+# setwd to current file location
+library(rstudioapi)
+file_path = rstudioapi::getActiveDocumentContext()$path 
+setwd(dirname(file_path))
+
+files <- strsplit(list.files("../data/test-data/v2_Ethiopia/S3/", 
+                             "-wealthQuintile-theData.rda"),
+                             "-wealthQuintile-theData.rda")
+
+files <- lapply(files, 
+                function(x) gsub(x = x, pattern = "S3-",replacement = ""))
 
 testnewWQ <- function (x){
         
