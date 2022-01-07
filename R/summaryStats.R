@@ -18,6 +18,9 @@
 #' @return output
 #' @export
 #' @examples
+#' SummaryStats(theData, biomarkerField = c("ferritin"),
+#' aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
+#' INSERT : data(dataname)
 
 SummaryStats <- function(theData,
                          biomarkerField, 
@@ -62,6 +65,9 @@ SummaryStats <- function(theData,
                   
                   adjust <- c("agp", "crp", "rbp", "retinol", 
                                    "ferritin", "stfr", "zinc")
+                  # make sure this doesn't produce an error, if column names aren't in dataset 
+                  # add to validation 
+                  
                   DataUse[adjust] <- lapply(DataUse[adjust], as.numeric)
                   
                   DataUse <- BRINDA(dataset = DataUse,

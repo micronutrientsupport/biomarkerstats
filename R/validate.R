@@ -15,7 +15,10 @@
 #' @param theData the data
 #' @param groupId the group
 #' @param biomarkerField the field name of the biomarker measurement data
-#' (i.e. zinc, ferritin, retinol)
+#' must be labelled "zinc", "haemoglobin", "ferritin", "stfr", "rbp", "retinol"
+# "rbcFolate", "psFolate", "vitaminB12", "zinc", "crp", "agp", "iodine". Else
+#' data will not be read. 
+#' 
 #' @param aggregationField the field name to aggregate by
 #' @param thresholds the thresholds
 #' 
@@ -49,6 +52,9 @@ validate <- function (theData,
                 stop("the groupId column in theData is either not present, ", 
                      " or non-homogenous. Please check for mixed groups in your groupId")
         }
+        
+        ##### Add check for biomarker field names ###### 
+        
         
         # Check there are more than 2 data points for each aggregate group
         preprocessData <- function (DataUse){
