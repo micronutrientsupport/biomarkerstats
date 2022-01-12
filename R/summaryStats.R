@@ -61,39 +61,36 @@ SummaryStats <- function(theData,
                   } 
                   DataUse <- zeroNegative(DataUse)
                   
-                  # BRINDA Adjustments 
+                  # # BRINDA Adjustments 
+                  # 
+                  # adjust <- c("agp", "crp", "rbp", "retinol", 
+                  #                  "ferritin", "stfr", "zinc")
+                  # # make sure this doesn't produce an error, if column names aren't in dataset 
+                  # # add to validation 
+                  # 
+                  # DataUse[adjust] <- lapply(DataUse[adjust], as.numeric)
+                  # 
+                  # DataUse <- BRINDA(dataset = DataUse,
+                  # 
+                  #                   zinc_varname = zinc,
+                  #                   crp_varname = crp,
+                  #                   agp_varname = agp,
+                  #                   population = WRA, #### change for each pop group
+                  #                   crp_ref_value_manual = ,
+                  #                   agp_ref_value_manual = ,
+                  #                   output_format = )
                   
-                  adjust <- c("agp", "crp", "rbp", "retinol", 
-                                   "ferritin", "stfr", "zinc")
-                  # make sure this doesn't produce an error, if column names aren't in dataset 
-                  # add to validation 
-                  
-                  DataUse[adjust] <- lapply(DataUse[adjust], as.numeric)
-                  
-                  DataUse <- BRINDA(dataset = DataUse,
-                                    retinol_binding_protein_varname = rbp,
-                                    retinol_varname = retinol, 
-                                    ferritin_varname = ferritin,
-                                    soluble_transferrin_receptor_varname = stfr,
-                                    zinc_varname = zinc, 
-                                    crp_varname = crp,
-                                    agp_varname = agp, 
-                                    population = WRA, #### change for each pop group
-                                    crp_ref_value_manual = ,
-                                    agp_ref_value_manual = ,
-                                    output_format = )
-                  
-                  DataUse[, biomarkerField]<- ifelse(biomarkerField == "rbp", DataUse["rbp_adj"],
-                                                     ifelse(biomarkerField == "retinol", DataUse["sr_adj"],
-                                                            ifelse(biomarkerField == "ferritin", DataUse["sf_adj"],
-                                                                   ifelse(biomarkerField == "stfr", DataUse["stfr_adj"],
-                                                                          ifelse(biomarkerField == "zinc", DataUse["zn_adj"],
-                                                                                 DataUse[biomarkerField])
-                                                                   )
-                                                            )
-                                                     )
-                  )
-                 
+                  # DataUse[, biomarkerField]<- ifelse(biomarkerField == "rbp", DataUse["rbp_adj"],
+                  #                                    ifelse(biomarkerField == "retinol", DataUse["sr_adj"],
+                  #                                           ifelse(biomarkerField == "ferritin", DataUse["sf_adj"],
+                  #                                                  ifelse(biomarkerField == "stfr", DataUse["stfr_adj"],
+                  #                                                         ifelse(biomarkerField == "zinc", DataUse["zn_adj"],
+                  #                                                                DataUse[biomarkerField])
+                  #                                                  )
+                  #                                           )
+                  #                                    )
+                  # )
+                  # 
                   
                     
                   # Assign age categories to individuals

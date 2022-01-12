@@ -1,97 +1,113 @@
 #' Tests SummaryStats function over multiple datasets
-#'
+#' @description  Use this function to test SummaryStats over all files and to 
+#' present current error messages
+#' All files data files threshold files must be in data/production-data
+#' directory, if not then test is run on data/sampleSurvey 
+#'  
 #' @import rstudioapi
 #' 
 #' @return new_results_WQ new_results_rN testnewUr
 #' @export
+#' 
 #' @examples
 #' SummaryStats(theData, biomarkerField = c("ferritin"),
 #' aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
 #' INSERT : data(dataname) ???
 
 # setwd to current file location
+
 library(rstudioapi)
+library(magrittr)
+library(srvyr)
+library(jtools)
+library(survey)
+library(dplyr)
+library(BRINDA)
+
+#### 12-Jan-2022 Latest version #### 
+
+aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
+
+testAll <- function (aggregateGroup){
+        # Function 1 :- load the files 
+        file_path = rstudioapi::getActiveDocumentContext()$path 
+        setwd(dirname(file_path))
+        extension <<- paste0("-", aggregateGroup, "-theData.rda")
+        files <- strsplit(list.files("../data/production-data/", extension), extension)
+        files <- lapply(files, 
+                        function(x) gsub(x = x, pattern = "S3-",replacement = ""))
+        
+         # Function 2 :- test the aggregate group 
+        testaggregateGroup <- function (x){
+                load(file=paste0("../data/production-data/S3-", x, 
+                                 extension), envir=globalenv())
+                load(file=paste0("../data/production-data/", x,
+                                 "-thresholds.rda"), envir=globalenv())
+                tryCatch({
+                        source("../R/summaryStats.R")
+                        result <- source(paste0("../data/production-data/S3-", x, 
+                                                "-", aggregateGroup, "-source.txt"))
+                        return(list(paste0(x, "-", aggregateGroup), TRUE, result[[1]]))
+                }, error=function(cond)  {
+                        message(cond) 
+                        return(list(x, FALSE, toString(cond)))})
+        }
+                lapply(files, testaggregateGroup)
+
+}
+
+final_results <- lapply(aggregateGroup, testAll)
+
+
+# to test (should equal different results)
+final_results[[1]][[27]][[3]]$aggregatedStats
+final_results[[3]][[27]][[3]]$aggregatedStats
+
+
+
+#####################
+#### old version ####
+all_aggregateGroups <- c("wealthQuintile", "regionName", "urbanity")
+aggregateGroup <- c("wealthQuintile")
+
+
+testAll <- function (x){
+
+filesList <- function(aggregateGroup){
 file_path = rstudioapi::getActiveDocumentContext()$path 
 setwd(dirname(file_path))
-
-files <- strsplit(list.files("../data/test-data/v2_Ethiopia/S3/", 
-                             "-wealthQuintile-theData.rda"),
-                             "-wealthQuintile-theData.rda")
-
-files <- lapply(files, 
+extension <<- paste0("-", aggregateGroup, "-theData.rda")
+files_list <- strsplit(list.files("../data/production-data/", extension), extension)
+files_list <- lapply(files_list, 
                 function(x) gsub(x = x, pattern = "S3-",replacement = ""))
-
-testnewWQ <- function (x){
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-", x,"-wealthQuintile-theData.rda"),envir=globalenv())
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/thresholds/", x,"-thresholds.rda"), envir=globalenv())
-        
-        tryCatch(
-                {
-                        source("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/R/summaryStats.R")
-                        
-                        wealthquintile <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-",x,"-wealthQuintile-source.txt"))
-                        return(list(x,TRUE,wealthquintile[[1]]
-                                    # ,regionName[[1]]
-                                    # ,urbanity[[1]] 
-                                    ))
-                },
-                error=function(cond)  {
-                        message(cond) 
-                        return(list(x,FALSE,toString(cond)))}
-        )
+return(files_list)
 }
-new_results_WQ <- lapply(files, testnewWQ)
+files <- filesList(aggregateGroup)
 
-# test new function 
-# Region Name
-
-testnewRN <- function (x){
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-", x,"-regionName-theData.rda"),envir=globalenv())
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/thresholds/", x,"-thresholds.rda"), envir=globalenv())
-        
-        tryCatch(
-                {
-                        source("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/R/summaryStats.R")
-                        
-                        regionName <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-",x,"-regionName-source.txt"))
-                        
-                        return(list(x,TRUE,regionName[[1]]))
-                },
-                error=function(cond)  {
-                        message(cond) 
-                        return(list(x,FALSE,toString(cond)))}
-        )
+testaggregateGroup <- function (x){
+        load(file=paste0("../data/production-data/S3-", x, 
+                         extension), envir=globalenv())
+        load(file=paste0("../data/production-data/", x,
+                         "-thresholds.rda"), envir=globalenv())
+        tryCatch({
+                source("../R/summaryStats.R")
+                result <- source(paste0("../data/production-data/S3-", x, 
+                                           "-", aggregateGroup, "-source.txt"))
+                return(list(paste0(x, "-", aggregateGroup), TRUE, result[[1]]))
+        }, error=function(cond)  {
+                message(cond) 
+                return(list(x, FALSE, toString(cond)))})
 }
-new_results_rN <- lapply(files, testnewRN)
 
-# test new function 
-# Urbanity
+all_results <- lapply(files, testaggregateGroup)
 
+return (all_results)
 
-testnewUr <- function (x){
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-", x,"-urbanity-theData.rda"),envir=globalenv())
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/thresholds/", x,"-thresholds.rda"), envir=globalenv())
-        
-        tryCatch(
-                {
-                        source("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/R/summaryStats.R")
-
-                        urbanity <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/v2_Ethiopia/S3/S3-",x,"-urbanity-source.txt"))
-                        
-                        return(list(x,TRUE,urbanity[[1]]))
-                },
-                error=function(cond)  {
-                        message(cond) 
-                        return(list(x,FALSE,toString(cond)))}
-        )
 }
-new_results_Ur <- lapply(files, testnewUr)
+
+final_results <- lapply(all_aggregateGroups, testAll)
+
+
 
 
 # Find errors 
@@ -123,35 +139,3 @@ to_fix <- rbind(c("wealthQunitile",errorFind(new_results_WQ)),
 # unique_errors <- as.data.frame(table(compare_errors["error.new"]))
 
 
-
-
-#### Old format
-
-# Test summaryStats function on latest Ethiopian data 
-
-# Test original data 
-setwd("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/88_tests/R-inputs/S3")
-files <- strsplit(list.files(, "-thresholds.rda"), "-thresholds.rda")
-function (x){
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/88_tests/R-inputs/S3/S3-WRA-theData.rda"),envir=globalenv())
-        
-        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/88_tests/R-inputs/S3/", x,"-thresholds.rda"), envir=globalenv())
-        
-        tryCatch(
-                {
-                        source("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/R/SummaryStats.R")
-                        
-                        wQ <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/88_tests/R-inputs/S3/",x,"-source.txt"))
-                        
-                        rG <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/tests/88_tests/R-inputs/S3/",x,"-region-source.txt"))
-                        
-                        return(list(x,TRUE,wQ[[1]],rG[[1]]))
-                },
-                error=function(cond)  {
-                        message(cond)
-                        return(list(x,FALSE,toString(cond)))
-                }
-        )
-}
-original_results <- lapply(files, test_original)
