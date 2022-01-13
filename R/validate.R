@@ -22,6 +22,9 @@
 #' @param aggregationField the field name to aggregate by
 #' @param thresholds the thresholds
 #' 
+#' @return
+#' @export
+#' 
 #' @examples 
 #' # To invoke validate function 
 #' validate(theData, biomarkerField = c("ferritin"),

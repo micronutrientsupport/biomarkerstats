@@ -4,12 +4,27 @@
 \alias{SummaryStats}
 \title{Biomarker Data}
 \usage{
-SummaryStats(theData, biomarkerName, groupId, thresholds)
+SummaryStats(
+  theData,
+  biomarkerField,
+  aggregationField,
+  groupId,
+  thresholds,
+  Flag_SurvWeightRun = FALSE,
+  Flag_SurvWeightSupplied = FALSE,
+  Flag_HaemAltAdjust = FALSE,
+  Flag_SmokeAdjust = FALSE
+)
 }
 \arguments{
 \item{theData}{the data}
 
-\item{biomarkerName}{the biomarker}
+\item{biomarkerField}{the field name of the biomarker measurement data.
+When a zero value is observed in the biomarkerField, there is a nominal value
+of 0.001 added to the zero value in order to #' facilitate statistical
+computation (in particular Log transform in the BRINDA package)}
+
+\item{aggregationField}{the field name to aggregate by}
 
 \item{groupId}{the group}
 
@@ -19,5 +34,10 @@ SummaryStats(theData, biomarkerName, groupId, thresholds)
 output
 }
 \description{
-Does some stuff
+Computes summary statistics for National Micronutrient Surveys
+}
+\examples{
+SummaryStats(theData, biomarkerField = c("ferritin"),
+aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
+INSERT : data(dataname)
 }
