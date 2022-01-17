@@ -35,7 +35,5 @@ If there is no error returned the parameters and datasets are correct, and
 you may proceed with using the SummaryStats function.
 }
 \examples{
-# To invoke validate function 
-validate(theData, biomarkerField = c("ferritin"),
-aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
+
 }

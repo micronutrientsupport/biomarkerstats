@@ -28,7 +28,8 @@ Imports:
     srvyr,
     jtools,
     dplyr,
-    magrittr
+    magrittr, 
+    BRINDA
 URL: https://github.com/micronutrientsupport/biomarkerstats
 BugReports: https://github.com/micronutrientsupport/biomarkerstats/issues
 Depends: 

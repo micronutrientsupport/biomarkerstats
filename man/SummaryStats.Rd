@@ -29,15 +29,25 @@ computation (in particular Log transform in the BRINDA package)}
 \item{groupId}{the group}
 
 \item{thresholds}{the thresholds}
+
+\item{Flag_SurvWeightRun}{If survey weights have already been run (?) set
+Flag_SurvWeightRun = TRUE, else default is FALSE and the survey weights will
+be run}
+
+\item{Flag_SurvWeightSupplied}{If survey weights have already been supplied (?) set
+Flag_SurvWeightupplied = TRUE, else default is FALSE}
+
+\item{Flag_HaemAltAdjust}{If Haemogoblin adjustment for altitude has already
+been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
+Haemoglobin will be adjusted}
+
+\item{Flag_SmokeAdjust}{If Haemogoblin adjustment for smoking status has already
+been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
+Haemoglobin will be adjusted}
 }
 \value{
 output
 }
 \description{
 Computes summary statistics for National Micronutrient Surveys
-}
-\examples{
-SummaryStats(theData, biomarkerField = c("ferritin"),
-aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
-INSERT : data(dataname)
 }
