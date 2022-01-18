@@ -11,9 +11,6 @@
 #'
 #' @export
 #' @examples
-#' SummaryStats(theData, biomarkerField = c("ferritin"),
-#' aggregationField = c("regionName"),groupId = c("WRA"), thresholds)
-#' INSERT : data(dataname) ???
 
 #### 12-Jan-2022 Latest version ####
 # 'source' has been changed to 'load_all'
@@ -23,7 +20,7 @@
 aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
 
 testAll <- function(aggregateGroup){
-   #     file_path = rstudioapi::getActiveDocumentContext()$path
+    #    file_path = rstudioapi::getActiveDocumentContext()$path
     #    setwd(dirname(file_path))
         extension <- paste0("-", aggregateGroup, "-theData.rda")
         files <- strsplit(list.files

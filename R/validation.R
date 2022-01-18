@@ -1,4 +1,4 @@
-#' Validate
+#' Validation
 #'
 #' @description
 #' Validates input files and parameters for the SummaryStats function
@@ -22,12 +22,12 @@
 #' @param aggregationField the field name to aggregate by
 #' @param thresholds the thresholds
 #'
-#' @return
 #' @export
+#' @return
 #'
 #' @examples
 
-validate <- function (theData,
+validation <- function (theData,
                        biomarkerField,
                        aggregationField,
                        groupId,
