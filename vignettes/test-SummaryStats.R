@@ -1,12 +1,10 @@
-#' Tests SummaryStats function over multiple datasets
+#' Development tool - Tests SummaryStats function over multiple datasets
 #'
 #' @description  Use this function to test SummaryStats over all files and to
 #' present current error messages
-#' All files data files threshold files must be in data/production-data
-#' directory, if not then test is run on data/sampleSurvey
-#'
+#' All files data files threshold files must be in given directory
 #' @importFrom magrittr %>%
-#' @import srvyr jtools survey dplyr BRINDA rstudioapi
+#' @import srvyr jtools survey dplyr BRINDA
 #' @return final_results
 #'
 #' @export
@@ -15,31 +13,37 @@
 #### 12-Jan-2022 Latest version ####
 # 'source' has been changed to 'load_all'
 
-#### Use load all instead of source
+# Set directory to a location where data files to test lie
+# This script will work if they are placed in a subdirectory
+# two directories away from the root 'biomarkerstats'
+
+library(srvyr)
+library(jtools)
+library(survey)
+library(dplyr)
+library(BRINDA)
+
+setwd("./inst/production-data/")
 
 aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
 
 testAll <- function(aggregateGroup){
-    #    file_path = rstudioapi::getActiveDocumentContext()$path
-    #    setwd(dirname(file_path))
         extension <- paste0("-", aggregateGroup, "-theData.rda")
-        files <- strsplit(list.files
-                          ("../data/production-data/", extension), extension)
+        files <- strsplit(list.files (".", extension), extension)
         files <- lapply(files,
                         function(x) gsub(x=x, pattern="S3-",replacement=""))
         testaggregateGroup <- function(x){
-           load(file=paste0("../data/production-data/S3-", x,
+                load(file=paste0("S3-", x,
                                  extension), envir=globalenv())
-           load(file=paste0("../data/production-data/", x,
-                                 "-thresholds.rda"), envir=globalenv())
-           tryCatch({
-                load_all("../R/summaryStats.R")
-                result <- load_all(paste0("../data/production-data/S3-", x, "-",
-                                        aggregateGroup, "-source.txt"))
-                return(list(paste0(x, "-", aggregateGroup), TRUE, result[[1]]))
-           }, error=function(cond)  {
-                message(cond)
-                return(list(x, FALSE, toString(cond)))})
+                load(file=paste0(x, "-thresholds.rda"), envir=globalenv())
+                tryCatch({
+                        source("../../R/summaryStats.R")
+                        result <- source(paste0("S3-", x, "-",
+                                                aggregateGroup, "-source.txt"))
+                        return(list(paste0(x, "-", aggregateGroup), TRUE, result[[1]]))
+                }, error=function(cond)  {
+                        message(cond)
+                        return(list(x, FALSE, toString(cond)))})
         }
         lapply(files, testaggregateGroup)
 }
@@ -73,5 +77,3 @@ tofixErrors <- function(compareErrors){
 #                 c("urbanity", errorFind(new_results_Ur)))
 #
 # # unique_errors <- as.data.frame(table(compare_errors["error.new"]))
-
-

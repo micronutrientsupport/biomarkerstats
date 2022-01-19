@@ -4,6 +4,6 @@
 .httr-oauth
 .DS_Store
 data/liveSurvey.rda
-data/production-data/
+inst/production-data/
 R/archive-scripts/
 
