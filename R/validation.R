@@ -52,24 +52,31 @@ validation <- function (theData,
                      " or non-homogenous. Please check for mixed groups in your groupId")
         }
 
-        ##### Add check for biomarker field names ######
-
-
         # Check there are more than 2 data points for each aggregate group
         preprocessData <- function (DataUse){
-                DataUse[,"surveyStrata"][is.na(DataUse[,"surveyStrata"])] <- 0
-                DataUse[,c("surveyStrata","surveyWeights")] <- lapply(DataUse[,c("surveyStrata","surveyWeights")], as.integer)
-                DataUse[,biomarkerField] <- as.numeric(DataUse[,biomarkerField])
-                DataUse[,aggregationField] <- as.character(DataUse[,aggregationField])
-                DataUse <- DataUse[complete.cases(DataUse[biomarkerField]) ,]
-                DataUse <- DataUse[complete.cases(DataUse[aggregationField]),]
-                DataUse <- DataUse[DataUse[,"groupId"] == groupId,]
-                DataUse[,"isPregnant"] <- as.logical(DataUse[,"isPregnant"])
-                DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
-                # Select values that are under the physiological limit for micronutrients
-                PhysLim <- 6000
-                DataUse <- DataUse[which(get(biomarkerField, DataUse) <= PhysLim), ]
-                return(DataUse)
+          DataUse[,"surveyStrata"][is.na(DataUse[, "surveyStrata"])] <- 0
+          DataUse[,c("surveyStrata","surveyWeights")] <- lapply(DataUse[, c("surveyStrata","surveyWeights")], as.integer)
+          DataUse[, biomarkerField] <- as.numeric(DataUse[, biomarkerField])
+          biomarkers <- c("agp", "crp", "ferritin",
+                          "haemoglobin", "iodine", "psFolate",
+                          "rbcFolate", "rbp", "retinol",
+                          "stfr", "vitaminB12", "zinc")
+          for(i in seq(biomarkers)){
+            if (biomarkers[i] %in% names(DataUse)){
+              DataUse[, biomarkers[i]] <- as.numeric(DataUse
+                                                     [, biomarkers[i]])
+            }
+          }
+          DataUse[, aggregationField] <- as.character(DataUse[, aggregationField])
+          DataUse <- DataUse[complete.cases(DataUse[biomarkerField]), ]
+          DataUse <- DataUse[complete.cases(DataUse[aggregationField]), ]
+          DataUse <- DataUse[DataUse[,"groupId"] == groupId, ]
+          DataUse[, "isPregnant"] <- as.logical(DataUse[, "isPregnant"])
+          DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
+          # Select values that are under the physiological limit for micronutrients
+          PhysLim <- 6000
+          DataUse <- DataUse[which(get(biomarkerField, DataUse) <= PhysLim), ]
+          return(DataUse)
         }
         DataUse <- preprocessData(theData)
 
@@ -127,7 +134,6 @@ validation <- function (theData,
         }
 }
 
-
-
-
-
+### TODO: Add line which checks for biomarker field names ######
+c("agp", "crp", "ferritin", "haemoglobin", "iodine", "psFolate", "rbcFolate",
+  "rbp", "retinol", "stfr", "vitaminB12", "zinc")

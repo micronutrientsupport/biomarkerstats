@@ -3,30 +3,41 @@
 #' Computes summary statistics for National Micronutrient Surveys
 #'
 #' @param theData the data
+#'
 #' @param groupId the group
+#'
 #' @param biomarkerField the field name of the biomarker measurement data.
 #' When a zero value is observed in the biomarkerField, there is a nominal value
 #' of 0.001 added to the zero value in order to #' facilitate statistical
 #' computation (in particular Log transform in the BRINDA package)
+#'
 #' @param aggregationField the field name to aggregate by
+#'
 #' @param thresholds the thresholds
+#'
 #' @param Flag_SurvWeightRun If survey weights have already been run (?) set
 #' Flag_SurvWeightRun = TRUE, else default is FALSE and the survey weights will
 #' be run
+#'
 #' @param Flag_SurvWeightSupplied If survey weights have already been supplied (?) set
 #' Flag_SurvWeightupplied = TRUE, else default is FALSE
+#'
 #' @param Flag_HaemAltAdjust If Haemogoblin adjustment for altitude has already
 #' been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
 #' Haemoglobin will be adjusted
+#'
 #' @param Flag_SmokeAdjust If Haemogoblin adjustment for smoking status has already
 #' been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
 #' Haemoglobin will be adjusted
 #'
 #' @importFrom magrittr %>%
+#'
 #' @import srvyr jtools survey dplyr BRINDA
 #'
 #' @return output
+#'
 #' @export
+#'
 #' @examples
 
 SummaryStats <- function(theData,
@@ -43,14 +54,24 @@ SummaryStats <- function(theData,
 
                   # Assign the correct datatypes and remove incomplete data fields
                   preprocessData <- function (DataUse){
-                    DataUse[,"surveyStrata"][is.na(DataUse[,"surveyStrata"])] <- 0
-                    DataUse[,c("surveyStrata","surveyWeights")] <- lapply(DataUse[,c("surveyStrata","surveyWeights")], as.integer)
-                    DataUse[,biomarkerField] <- as.numeric(DataUse[,biomarkerField])
-                    DataUse[,aggregationField] <- as.character(DataUse[,aggregationField])
-                    DataUse <- DataUse[complete.cases(DataUse[biomarkerField]) ,]
-                    DataUse <- DataUse[complete.cases(DataUse[aggregationField]),]
-                    DataUse <- DataUse[DataUse[,"groupId"] == groupId,]
-                    DataUse[,"isPregnant"] <- as.logical(DataUse[,"isPregnant"])
+                    DataUse[,"surveyStrata"][is.na(DataUse[, "surveyStrata"])] <- 0
+                    DataUse[,c("surveyStrata","surveyWeights")] <- lapply(DataUse[, c("surveyStrata","surveyWeights")], as.integer)
+                    DataUse[, biomarkerField] <- as.numeric(DataUse[, biomarkerField])
+                    biomarkers <- c("agp", "crp", "ferritin",
+                                    "haemoglobin", "iodine", "psFolate",
+                                    "rbcFolate", "rbp", "retinol",
+                                    "stfr", "vitaminB12", "zinc")
+                    for(i in seq(biomarkers)){
+                      if (biomarkers[i] %in% names(DataUse)){
+                        DataUse[, biomarkers[i]] <- as.numeric(DataUse
+                                                              [, biomarkers[i]])
+                      }
+                    }
+                    DataUse[, aggregationField] <- as.character(DataUse[, aggregationField])
+                    DataUse <- DataUse[complete.cases(DataUse[biomarkerField]), ]
+                    DataUse <- DataUse[complete.cases(DataUse[aggregationField]), ]
+                    DataUse <- DataUse[DataUse[,"groupId"] == groupId, ]
+                    DataUse[, "isPregnant"] <- as.logical(DataUse[, "isPregnant"])
                     DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
                     # Select values that are under the physiological limit for micronutrients
                     PhysLim <- 6000
@@ -68,37 +89,57 @@ SummaryStats <- function(theData,
                   }
                   DataUse <- zeroNegative(DataUse)
 
-                  # # BRINDA Adjustments
-                  #
-                  # adjust <- c("agp", "crp", "rbp", "retinol",
-                  #                  "ferritin", "stfr", "zinc")
-                  # # make sure this doesn't produce an error, if column names aren't in dataset
-                  # # add to validation
-                  #
-                  # DataUse[adjust] <- lapply(DataUse[adjust], as.numeric)
-                  #
-                  # DataUse <- BRINDA(dataset = DataUse,
-                  #
-                  #                   zinc_varname = zinc,
-                  #                   crp_varname = crp,
-                  #                   agp_varname = agp,
-                  #                   population = WRA, #### change for each pop group
-                  #                   crp_ref_value_manual = ,
-                  #                   agp_ref_value_manual = ,
-                  #                   output_format = )
+                  # BRINDA Adjustments
+                  if(biomarkerField %in% c("rbp", "retinol", "ferritin",
+                                           "stfr", "zinc")) {
+                    applyBrinda <- function(DataUse){
+                      brinda <- "BRINDA(dataset = DataUse,"
 
-                  # DataUse[, biomarkerField]<- ifelse(biomarkerField == "rbp", DataUse["rbp_adj"],
-                  #                                    ifelse(biomarkerField == "retinol", DataUse["sr_adj"],
-                  #                                           ifelse(biomarkerField == "ferritin", DataUse["sf_adj"],
-                  #                                                  ifelse(biomarkerField == "stfr", DataUse["stfr_adj"],
-                  #                                                         ifelse(biomarkerField == "zinc", DataUse["zn_adj"],
-                  #                                                                DataUse[biomarkerField])
-                  #                                                  )
-                  #                                           )
-                  #                                    )
-                  # )
-                  #
+                      if (biomarkerField == 'rbp'){
+                        biomarker <- "retinol_binding_protein_varname = rbp,"
+                      } else if (biomarkerField == 'retinol') {
+                        biomarker <- "retinol_varname = retinol,"
+                      } else if (biomarkerField == 'ferritin') {
+                        biomarker <- "ferritin_varname = ferritin,"
+                      } else if (biomarkerField == 'stfr') {
+                        biomarker <- "soluble_transferrin_receptor_varname = stfr,"
+                      } else if (biomarkerField == 'zinc') {
+                        biomarker <- "zinc_varname = zinc,"
+                      }
 
+                      agp <- ifelse ("agp" %in% names(DataUse),
+                                     "agp_varname = agp,", "agp_varname = ,")
+
+                      crp <- ifelse ("crp" %in% names(DataUse),
+                                     "crp_varname = crp,", "crp_varname = ,")
+
+                      if (groupId == "WRA"){
+                        pop <-"population = WRA)"
+                      } else if (groupId == "PSC"){
+                        pop <- "population = PSC)"
+                      } else if (groupId == "SAC" || groupId == "MEN"){
+                        pop <- "population = OTHER)"
+                      }
+                      return(eval(parse(text=paste(brinda,
+                                                   biomarker,
+                                                   agp,crp,pop))))
+                    }
+                    DataUse <- applyBrinda(DataUse)
+                  } else {
+                    invisible()
+                  }
+
+                  DataUse[, "original_biomarkerField"] <- DataUse[, biomarkerField]
+                  DataUse[, biomarkerField]<- ifelse(biomarkerField == "rbp", DataUse["rbp_adj"],
+                                                     ifelse(biomarkerField == "retinol", DataUse["sr_adj"],
+                                                            ifelse(biomarkerField == "ferritin", DataUse["sf_adj"],
+                                                                   ifelse(biomarkerField == "stfr", DataUse["stfr_adj"],
+                                                                          ifelse(biomarkerField == "zinc", DataUse["zn_adj"],
+                                                                                 DataUse[biomarkerField])
+                                                                   )
+                                                            )
+                                                     )
+                  )
 
                   # Assign age categories to individuals
                   ageCategories <- function (DataUse){
@@ -255,4 +296,3 @@ SummaryStats <- function(theData,
                     return(output)
 
 }
-

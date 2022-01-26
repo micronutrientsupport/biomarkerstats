@@ -10,18 +10,15 @@
 #' @export
 #' @examples
 
-#### 12-Jan-2022 Latest version ####
-# 'source' has been changed to 'load_all'
-
-# Set directory to a location where data files to test lie
-# This script will work if they are placed in a subdirectory
-# two directories away from the root 'biomarkerstats'
-
 library(srvyr)
 library(jtools)
 library(survey)
 library(dplyr)
 library(BRINDA)
+
+# Set directory to a location where data files to test lie
+# This script will work if they are placed in a subdirectory
+# Set directory to a location where data files to test lie
 
 setwd("./inst/production-data/")
 
@@ -63,17 +60,88 @@ errorFind <- function (results_list){
 }
 
 # Find errors in all aggregate group tests
-errorFind(final_results[[1]])
+errors <- errorFind(final_results[[1]])
 
-tofixErrors <- function(compareErrors){
-        to_fix <- compare_errors[,c("filename", "index", "error.new")]
-        to_fix <- subset(to_fix, !is.na(error.new ))
-        return(to_fix)
+
+#### Test one aggregate group
+
+aggregateGroup <- c("wealthQuintile")
+
+test_original <- function (x){
+        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/", x,"-theData.rda"),envir=globalenv())
+
+        load(file=paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats//inst/production-data/", x,"-thresholds.rda"), envir=globalenv())
+
+        tryCatch(
+                {
+                        source("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/R/summaryStats.R")
+
+                        wQ <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/",x,"-source.txt"))
+
+                        rG <- source(paste0("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/",x,"-region-source.txt"))
+
+                        return(list(x,TRUE,wQ[[1]],rG[[1]]))
+                },
+                error=function(cond)  {
+                        message(cond)
+                        return(list(x,FALSE,toString(cond)))}
+        )
 }
 
+setwd("C:/Users/Lenovo/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/")
+files <- strsplit(list.files(, "-thresholds.rda"), "-thresholds.rda")
+original_results <- lapply(files, test_original)
+
+errorFind <- function (results_list){
+        succeeded <- sapply(results_list, "[[", 2)
+        failed <- results_list[!succeeded]
+        index <- seq(succeeded)[!succeeded]
+        errors <- as.data.frame(cbind(index, filename= sapply(failed, "[[", 1), error =sapply(failed, "[[", 3)))
+        return(errors)
+}
+
+errors <- errorFind(original_results)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Comparision of function before/after changes
+
+# tofixErrors <- function(compareErrors){
+#         to_fix <- compare_errors[,c("filename", "index", "error.new")]
+#         to_fix <- subset(to_fix, !is.na(error.new ))
+#         return(to_fix)
+# }
 
 # to_fix <- rbind(c("wealthQunitile",errorFind(new_results_WQ)),
 #                 c("regionName",errorFind(new_results_rN)),
 #                 c("urbanity", errorFind(new_results_Ur)))
 #
 # # unique_errors <- as.data.frame(table(compare_errors["error.new"]))
+
+
+
+
+
