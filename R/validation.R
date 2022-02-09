@@ -24,8 +24,6 @@
 #'
 #' @export
 #' @return
-#'
-#' @examples
 
 validation <- function (theData,
                        biomarkerField,

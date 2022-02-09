@@ -37,8 +37,6 @@
 #' @return output
 #'
 #' @export
-#'
-#' @examples
 
 SummaryStats <- function(theData,
                          biomarkerField,

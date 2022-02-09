@@ -8,7 +8,6 @@
 #' @return final_results
 #'
 #' @export
-#' @examples
 
 library(srvyr)
 library(jtools)
