@@ -30,12 +30,6 @@
 #' been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
 #' Haemoglobin will be adjusted
 #'
-#' @importFrom magrittr %>%
-#'
-#' @import srvyr jtools survey dplyr BRINDA
-#'
-#' @return output
-#'
 #' @references
 #' \itemize{
 #' \item{}{Luo, H.; Addo, Y.; Jahan, A (2021) BRINDA: Computation of BRINDA
@@ -47,6 +41,12 @@
 #' No. 2. 2nd ed. Davis, CA: University of California;
 #' 2012. www.izincg.org}
 #' }
+#'
+#' @importFrom magrittr %>%
+#'
+#' @import srvyr jtools survey dplyr BRINDA
+#'
+#' @return output
 #'
 #' @export
 
