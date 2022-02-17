@@ -49,5 +49,17 @@ Haemoglobin will be adjusted}
 output
 }
 \description{
-Computes summary statistics for National Micronutrient Surveys
+Computes summary statistics for National Micronutrient Surveys.
+}
+\references{
+\itemize{
+\item{}{Luo, H.; Addo, Y.; Jahan, A (2021) BRINDA: Computation of BRINDA
+Adjusted Micronutrient Biomarkers for Inflammation.
+R package version 0.1.2, https://github.com/hanqiluo/BRINDA}
+\item{}{International Zinc Nutrition Consultative Group
+(IZiNCG). Assessing Population Zinc Status with
+Serum Zinc Concentration. IZiNCG Technical Brief
+No. 2. 2nd ed. Davis, CA: University of California;
+2012. www.izincg.org}
+}
 }
