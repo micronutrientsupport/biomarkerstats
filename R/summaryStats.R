@@ -179,9 +179,9 @@ SummaryStats <- function(theData,
                     for (thresholdName in names(thresholds)) {
                             lower <- as.numeric(thresholds[[thresholdName]]$lower)
                             upper <- as.numeric(thresholds[[thresholdName]]$upper)
-                            if (length(lower)==0) {
+                            if (lower == 0) {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
-                            } else if (length(upper)==0) {
+                            } else if (upper == 0) {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
                             } else {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
@@ -190,6 +190,21 @@ SummaryStats <- function(theData,
 
                   # Adjustments for zinc (Serum zinc concentrations vary by
                   # age group, sex, time of day and fasting status)
+
+                    thresh <- list()
+                    for (thresholdName in names(thresholds)) {
+                      lower <- as.numeric(thresholds[[thresholdName]]$lower)
+                      upper <- as.numeric(thresholds[[thresholdName]]$upper)
+                      if (lower ==0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
+                      } else if (upper==0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
+                      } else if (upper!=0 & lower!=0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
+                      } else {
+                        DataUse[[thresholdName]] <- NA
+                      }
+                    }
 
 
 
