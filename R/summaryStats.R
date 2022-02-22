@@ -181,7 +181,7 @@ SummaryStats <- function(theData,
                             upper <- as.numeric(thresholds[[thresholdName]]$upper)
                             if (lower == 0) {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
-                            } else if (upper == 0) {
+                            } else if (length(upper)==0) {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
                             } else {
                                     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
@@ -195,17 +195,19 @@ SummaryStats <- function(theData,
                     for (thresholdName in names(thresholds)) {
                       lower <- as.numeric(thresholds[[thresholdName]]$lower)
                       upper <- as.numeric(thresholds[[thresholdName]]$upper)
-                      if (lower ==0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
-                      } else if (upper==0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
-                      } else if (upper!=0 & lower!=0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
+                      cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
+                        DataUse$wasFasting
+
+                      if (lower == 0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                      } else if (length(upper)==0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
+                      } else if (upper !=0 & lower !=0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
                       } else {
                         DataUse[[thresholdName]] <- NA
                       }
                     }
-
 
 
 
