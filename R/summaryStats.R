@@ -182,26 +182,26 @@ SummaryStats <- function(theData,
 
                   ####TO DO
                   #### if statement for SAC (age) >10
-
-                    if (biomarkerField == "zinc"){
-                    for (thresholdName in names(thresholds)) {
-                      lower <- as.numeric(thresholds[[thresholdName]]$lower)
-                      upper <- as.numeric(thresholds[[thresholdName]]$upper)
-                      cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
-                        DataUse$wasFasting
-
-                      if (lower == 0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
-                      } else if (length(upper) == 0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
-                      } else if (upper !=0 & lower !=0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
-                      } else {
-                        DataUse[[thresholdName]] <- FALSE
-                      }
-                    }
-
-                    } else {
+#### FIX- check the 'run one - zinc changes'
+                    # if (biomarkerField == "zinc"){
+                    # for (thresholdName in names(thresholds)) {
+                    #   lower <- as.numeric(thresholds[[thresholdName]]$lower)
+                    #   upper <- as.numeric(thresholds[[thresholdName]]$upper)
+                    #   cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
+                    #     DataUse$wasFasting
+                    #
+                    #   if (lower == 0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                    #   } else if (length(upper) == 0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
+                    #   } else if (upper !=0 & lower !=0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                    #   } else {
+                    #     DataUse[[thresholdName]] <- FALSE
+                    #   }
+                    # }
+                    #
+                    # } else {
 
                       for (thresholdName in names(thresholds)) {
                         lower <- as.numeric(thresholds[[thresholdName]]$lower)
