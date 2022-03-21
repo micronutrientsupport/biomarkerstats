@@ -190,9 +190,6 @@ SummaryStats <- function(theData,
 
                   # Adjustments for zinc (Serum zinc concentrations vary by
                   # age group, sex, time of day and fasting status)
-
-<<<<<<< HEAD
-<<<<<<< HEAD
                   ####TO DO
                   #### if statement for SAC (age) >10
 #### FIX- check the 'run one - zinc changes'
@@ -215,31 +212,36 @@ SummaryStats <- function(theData,
                     # }
                     #
                     # } else {
-=======
-=======
->>>>>>> parent of 7cfec7e (zinc adjustments)
+                    # thresh <- list()
+                    # for (thresholdName in names(thresholds)) {
+                    #   lower <- as.numeric(thresholds[[thresholdName]]$lower)
+                    #   upper <- as.numeric(thresholds[[thresholdName]]$upper)
+                    #   #cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
+                    #   #  DataUse$wasFasting
+                    #
+                    #   if (lower == 0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                    #   } else if (length(upper)==0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
+                    #   } else if (upper !=0 & lower !=0) {
+                    #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                    #   } else {
+                    #     DataUse[[thresholdName]] <- NA
+                    #   }
+                    # }
+
                     thresh <- list()
                     for (thresholdName in names(thresholds)) {
                       lower <- as.numeric(thresholds[[thresholdName]]$lower)
                       upper <- as.numeric(thresholds[[thresholdName]]$upper)
-                      cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
-                        DataUse$wasFasting
-
-                      if (lower == 0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                      if (length(lower)==0) {
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
                       } else if (length(upper)==0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
-                      } else if (upper !=0 & lower !=0) {
-                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
                       } else {
-                        DataUse[[thresholdName]] <- NA
+                        DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
                       }
                     }
-
-<<<<<<< HEAD
->>>>>>> parent of 7cfec7e (zinc adjustments)
-=======
->>>>>>> parent of 7cfec7e (zinc adjustments)
 
 
 
