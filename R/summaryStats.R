@@ -59,8 +59,7 @@ SummaryStats <- function(theData,
                          Flag_SurvWeightRun = FALSE,
                          Flag_SurvWeightSupplied = FALSE,
                          Flag_HaemAltAdjust = FALSE,
-                         Flag_SmokeAdjust = FALSE
-){
+                         Flag_SmokeAdjust = FALSE) {
   DataUse <- theData
 
   DataUse <- preprocessData(DataUse)
