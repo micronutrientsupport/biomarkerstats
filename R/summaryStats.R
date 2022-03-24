@@ -50,7 +50,7 @@
 #'
 #' @export
 
-
+# Main SummaryStats function
 SummaryStats <- function(theData,
                          biomarkerField,
                          aggregationField,
@@ -74,31 +74,6 @@ SummaryStats <- function(theData,
   DataUse <- ageCategories(DataUse)
 
   DataUse <- calcThresholds(DataUse, thresholds)
-
-  # Adjustments for zinc (Serum zinc concentrations vary by
-  # age group, sex, time of day and fasting status)
-  #
-  # if (biomarkerField == "zinc"){
-  # for (thresholdName in names(thresholds)) {
-  #   lower <- as.numeric(thresholds[[thresholdName]]$lower)
-  #   upper <- as.numeric(thresholds[[thresholdName]]$upper)
-  #   cond <- thresholds[[thresholdName]]$condition$timeOfDaySampled == DataUse$timeOfDaySampled & thresholds[[thresholdName]]$condition$wasFasting ==
-  #     DataUse$wasFasting
-  #
-  #   if (lower == 0) {
-  #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
-  #   } else if (length(upper) == 0) {
-  #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & cond , TRUE, FALSE)
-  #   } else if (upper !=0 & lower !=0) {
-  #     DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper & cond , TRUE, FALSE)
-  #   } else {
-  #     DataUse[[thresholdName]] <- FALSE
-  #   }
-  # }
-  #
-  # } else {
-  # thresh <- list()
-  # DataUse <- calcThresholds(DataUse, thresholds)
 
   DHSdesign <- createDHS(DataUse, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
 
@@ -129,6 +104,8 @@ SummaryStats <- function(theData,
   )
   return(output)
 }
+
+# Function definitions (as used in main function)
 
 preprocessData <- function(DataUse){
   DataUse[,"surveyStrata"][is.na(DataUse[, "surveyStrata"])] <- 0
@@ -271,8 +248,7 @@ createDHS <- function(DataUse, Flag_SurvWeightRun, Flag_SurvWeightSupplied){
 
 summaryDHS <- function(DataUse, DHSdesign, biomarkerField) {
   # compute statistics for DHS
-  mean <-
-    survey::svymean( ~ DataUse[, biomarkerField], DHSdesign, ci = FALSE)
+  mean <- survey::svymean( ~ DataUse[, biomarkerField], DHSdesign, ci = FALSE)
   quantiles <- survey::oldsvyquantile( ~ DataUse[, biomarkerField],
                                        DHSdesign, c(.25, .5, .75),
                                        ci = FALSE)
