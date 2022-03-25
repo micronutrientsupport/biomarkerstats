@@ -60,40 +60,50 @@ SummaryStats <- function(theData,
                          Flag_SurvWeightSupplied = FALSE,
                          Flag_HaemAltAdjust = FALSE,
                          Flag_SmokeAdjust = FALSE) {
-  DataUse <- theData
 
-  DataUse <- preprocessData(DataUse)
+  processed_data <- preprocessData(theData)
 
-  DataUse <- zeroNegative(DataUse)
+  survey_data <- zeroNegative(processed_data)
 
-  # Apply BRINDA Adjustments
-  DataUse <- applyBrinda(DataUse)
+  brinda_data <- applyBrinda(survey_data)
 
-  DataUse <- useAdjusted(DataUse, biomarkerField)
+  survey_data <- useAdjusted(brinda_data, biomarkerField)
 
-  DataUse <- ageCategories(DataUse)
+  # zinc adjustments
 
-  DataUse <- calcThresholds(DataUse, thresholds)
+  # zinc_adj_data <- zincAdjusted(brinda_adj_data)
 
-  DHSdesign <- createDHS(DataUse, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
+  # haemoglobin altitide adjustment (if statement: Flag_HaemAltAdjust = FALSE)
 
-  summary <- summaryDHS(DataUse, DHSdesign, biomarkerField)
+  # haem_alt_adj_data <- haemAltAdjusted(zinc_adjusted_data)
+
+  # haemoglobin smoking adjustment (if statement: Flag_SmokeAdjust = FALSE)
+
+  # haem_smoke_adj_data <- haemSmokeAdjusted(zinc_adjusted_data)
+
+  survey_data <- ageCategories(survey_data)
+
+  survey_data <- calcThresholds(survey_data, thresholds)
+
+  DHSdesign <- createDHS(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
+
+  summary <- summaryDHS(survey_data, DHSdesign, biomarkerField)
 
   # Calculate deficiency percentages for all threshold levels
 
-  thresh <- calcDeficiency(DataUse, thresholds, aggregationField, DHSdesign)
+  thresh <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
 
   # Calculate weighted survey summary statistics
 
-  stat <- weightedStats(DataUse)
+  stat <- weightedStats(survey_data)
 
   # Combine weighted survey summary statistics and aggregate group counts
 
-  combined <- combinedStats(DataUse, biomarkerField,stat)
+  combined <- combinedStats(survey_data, biomarkerField, stat)
 
   # Filter out upper and lower outliers
 
-  outliers <- filterOutliers(stat, DataUse)
+  outliers <- filterOutliers(survey_data, stat)
 
   # Output all results
   output <- list(
@@ -107,46 +117,46 @@ SummaryStats <- function(theData,
 
 # Function definitions (as used in main function)
 
-preprocessData <- function(DataUse){
-  DataUse[,"surveyStrata"][is.na(DataUse[, "surveyStrata"])] <- 0
-  DataUse[,c("surveyStrata","surveyWeights")] <- lapply(DataUse[, c("surveyStrata","surveyWeights")], as.integer)
-  DataUse[, biomarkerField] <- as.numeric(DataUse[, biomarkerField])
+preprocessData <- function(theData){
+  theData[,"surveyStrata"][is.na(theData[, "surveyStrata"])] <- 0
+  theData[,c("surveyStrata","surveyWeights")] <- lapply(theData[, c("surveyStrata","surveyWeights")], as.integer)
+  theData[, biomarkerField] <- as.numeric(theData[, biomarkerField])
   biomarkers <- c("agp", "crp", "ferritin",
                   "haemoglobin", "iodine", "psFolate",
                   "rbcFolate", "rbp", "retinol",
                   "stfr", "vitaminB12", "zinc")
   for(i in seq(biomarkers)){
-    if (biomarkers[i] %in% names(DataUse)){
-      DataUse[, biomarkers[i]] <- as.numeric(DataUse
+    if (biomarkers[i] %in% names(theData)){
+      theData[, biomarkers[i]] <- as.numeric(theData
                                              [, biomarkers[i]])
     }
   }
-  DataUse[, aggregationField] <- as.character(DataUse[, aggregationField])
-  DataUse <- DataUse[complete.cases(DataUse[biomarkerField]), ]
-  DataUse <- DataUse[complete.cases(DataUse[aggregationField]), ]
-  DataUse <- DataUse[DataUse[,"groupId"] == groupId, ]
-  DataUse[, "isPregnant"] <- as.logical(DataUse[, "isPregnant"])
-  DataUse <- DataUse[is.na(DataUse["isPregnant"])|DataUse["isPregnant"]== FALSE,]
+  theData[, aggregationField] <- as.character(theData[, aggregationField])
+  theData <- theData[complete.cases(theData[biomarkerField]), ]
+  theData <- theData[complete.cases(theData[aggregationField]), ]
+  theData <- theData[theData[,"groupId"] == groupId, ]
+  theData[, "isPregnant"] <- as.logical(theData[, "isPregnant"])
+  theData <- theData[is.na(theData["isPregnant"])|theData["isPregnant"]== FALSE,]
   # Select values that are under the physiological limit for micronutrients
   PhysLim <- 6000
-  DataUse <- DataUse[which(get(biomarkerField, DataUse) <= PhysLim), ]
-  return(DataUse)
+  theData <- theData[which(get(biomarkerField, theData) <= PhysLim), ]
+  return(theData)
 }
 
-zeroNegative <- function(DataUse){
-  DataUse[,biomarkerField] <- ifelse(DataUse[,biomarkerField] == 0,
+zeroNegative <- function(processed_data){
+  processed_data[,biomarkerField] <- ifelse(processed_data[,biomarkerField] == 0,
                                      0.001,
-                                     DataUse[,biomarkerField])
-  DataUse <- subset(DataUse, get(biomarkerField) > 0)
-  return(DataUse)
+                                     processed_data[,biomarkerField])
+  processed_data <- subset(processed_data, get(biomarkerField) > 0)
+  return(processed_data)
 }
 
-applyBrinda <- function(DataUse){
+applyBrinda <- function(survey_data){
 
   if(biomarkerField %in% c("rbp", "retinol", "ferritin",
                            "stfr", "zinc")) {
 
-    brinda <- "BRINDA(dataset = DataUse,"
+    brinda <- "BRINDA(dataset = survey_data,"
 
     if (biomarkerField == 'rbp'){
       biomarker <- "retinol_binding_protein_varname = rbp,"
@@ -160,10 +170,10 @@ applyBrinda <- function(DataUse){
       biomarker <- "zinc_varname = zinc,"
     }
 
-    agp <- ifelse ("agp" %in% names(DataUse),
+    agp <- ifelse ("agp" %in% names(survey_data),
                    "agp_varname = agp,", "agp_varname = ,")
 
-    crp <- ifelse ("crp" %in% names(DataUse),
+    crp <- ifelse ("crp" %in% names(survey_data),
                    "crp_varname = crp,", "crp_varname = ,")
 
     if (groupId == "WRA"){
@@ -182,26 +192,30 @@ applyBrinda <- function(DataUse){
   }
 }
 
-useAdjusted <- function(DataUse, biomarkerField) {
-  DataUse[, "original_biomarkerField"] <- DataUse[, biomarkerField]
-  DataUse[, biomarkerField]<- ifelse(biomarkerField == "rbp", DataUse["rbp_adj"],
-                                     ifelse(biomarkerField == "retinol", DataUse["sr_adj"],
-                                            ifelse(biomarkerField == "ferritin", DataUse["sf_adj"],
-                                                   ifelse(biomarkerField == "stfr", DataUse["stfr_adj"],
-                                                          ifelse(biomarkerField == "zinc", DataUse["zn_adj"],
-                                                                 DataUse[biomarkerField])
+useAdjusted <- function(brinda_data, biomarkerField) {
+  brinda_data[, "original_biomarkerField"] <- brinda_data[, biomarkerField]
+  brinda_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", brinda_data["rbp_adj"],
+                                     ifelse(biomarkerField == "retinol", brinda_data["sr_adj"],
+                                            ifelse(biomarkerField == "ferritin", brinda_data["sf_adj"],
+                                                   ifelse(biomarkerField == "stfr", brinda_data["stfr_adj"],
+                                                          ifelse(biomarkerField == "zinc", brinda_data["zn_adj"],
+                                                                 brinda_data[biomarkerField])
                                                    )
                                             )
                                      )
   )
-  return(DataUse)
+  return(brinda_data)
 }
 
-ageCategories <- function(DataUse){
-  id <- DataUse[,"groupId"]
-  age <-DataUse[,"ageInMonths"]
+# zincAdjusted <- function(survey_data, biomarkerField) {}
+
+# haemAdjusted <- function(survey_data, biomarkerField)
+
+ageCategories <- function(survey_data){
+  id <- survey_data[,"groupId"]
+  age <-survey_data[,"ageInMonths"]
   y <- 12
-  DataUse[,"AgeCat"] <- ifelse(id == "WRA",
+  survey_data[,"AgeCat"] <- ifelse(id == "WRA",
                                ifelse(age >= (15*y) & age < (20*y), 1, ifelse(age >= (20*y) & age < (50*y), 2, NA)),
                                ifelse(id == "PSC",
                                       ifelse(age >= (0.5*y) & age < (2*y), 1, ifelse(age >= (2*y) & age < (5*y), 2, NA)),
@@ -214,46 +228,46 @@ ageCategories <- function(DataUse){
                                       )
                                )
   )
-  DataUse <- DataUse[complete.cases(DataUse["AgeCat"]),]
-  DataUse[,"DemoGpCat"] <- paste0(id, ".",DataUse[,"AgeCat"])
-  return(DataUse)
+  survey_data <- survey_data[complete.cases(survey_data["AgeCat"]),]
+  survey_data[,"DemoGpCat"] <- paste0(id, ".", survey_data[,"AgeCat"])
+  return(survey_data)
 }
 
-calcThresholds <- function(DataUse, thresholds){
+calcThresholds <- function(survey_data, thresholds){
   thresh <- list()
   for (thresholdName in names(thresholds)) {
     lower <- as.numeric(thresholds[[thresholdName]]$lower)
     upper <- as.numeric(thresholds[[thresholdName]]$upper)
     if (lower == 0) {
-      DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] <= upper, TRUE, FALSE)
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper, TRUE, FALSE)
     } else if (length(upper)==0) {
-      DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower, TRUE, FALSE)
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower, TRUE, FALSE)
     } else {
-      DataUse[[thresholdName]] <- ifelse(DataUse[, biomarkerField] > lower & DataUse[, biomarkerField] <= upper, TRUE, FALSE)
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper, TRUE, FALSE)
     }
   }
-  return(DataUse)
+  return(survey_data)
 }
 
-createDHS <- function(DataUse, Flag_SurvWeightRun, Flag_SurvWeightSupplied){
+createDHS <- function(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied){
   # Create a Demographic and Health Survey (DHS)
   if (Flag_SurvWeightRun == TRUE & Flag_SurvWeightSupplied == TRUE) {
-    DHSdesign <- survey::svydesign(id = DataUse[,"surveyCluster"], strata = DataUse[,"surveyStrata"], weights = DataUse[,"surveyWeights"] / 1000000, data = DataUse, nest = TRUE)
+    DHSdesign <- survey::svydesign(id = survey_data[,"surveyCluster"], strata = survey_data[,"surveyStrata"], weights = survey_data[,"surveyWeights"] / 1000000, data = survey_data, nest = TRUE)
     options("survey.lonely.psu" = "adjust")
   } else {
-    DHSdesign <- survey::svydesign(ids = ~1, strata = NULL, weights = NULL, data = DataUse)
+    DHSdesign <- survey::svydesign(ids = ~1, strata = NULL, weights = NULL, data = survey_data)
   }
   return(DHSdesign)
 }
 
-summaryDHS <- function(DataUse, DHSdesign, biomarkerField) {
+summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
   # compute statistics for DHS
-  mean <- survey::svymean( ~ DataUse[, biomarkerField], DHSdesign, ci = FALSE)
-  quantiles <- survey::oldsvyquantile( ~ DataUse[, biomarkerField],
+  mean <- survey::svymean( ~ survey_data[, biomarkerField], DHSdesign, ci = FALSE)
+  quantiles <- survey::oldsvyquantile( ~ survey_data[, biomarkerField],
                                        DHSdesign, c(.25, .5, .75),
                                        ci = FALSE)
-  sd <- jtools::svysd( ~ DataUse[, biomarkerField], DHSdesign)
-  n <- nrow(DataUse)
+  sd <- jtools::svysd( ~ survey_data[, biomarkerField], DHSdesign)
+  n <- nrow(survey_data)
   summary <- as.data.frame(cbind(mean, quantiles, sd, n))
   summary <- srvyr::rename(
     summary,
@@ -282,11 +296,11 @@ summaryDHS <- function(DataUse, DHSdesign, biomarkerField) {
   return(summary)
 }
 
-calcDeficiency <- function(DataUse, thresholds, aggregationField, DHSdesign) {
+calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign) {
   thresh <- list()
   for (thresholdName in names(thresholds)) {
-    thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~ DataUse[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
-    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "DataUse[, aggregationField]"] <- "aggregation"
+    thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
+    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "survey_data[, aggregationField]"] <- "aggregation"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
@@ -295,9 +309,9 @@ calcDeficiency <- function(DataUse, thresholds, aggregationField, DHSdesign) {
   return(thresh)
 }
 
-weightedStats <- function (DataUse){
+weightedStats <- function (survey_data){
   options("survey.lonely.psu" = "adjust")
-  strat_design_srvyr <- DataUse %>%
+  strat_design_srvyr <- survey_data %>%
     srvyr::rename("aggregation" = all_of(aggregationField)) %>%
     srvyr::rename("biomarker" = all_of(biomarkerField)) %>%
     srvyr::mutate(aggregation = as.factor(aggregation)) %>%
@@ -326,9 +340,9 @@ weightedStats <- function (DataUse){
   return(stat)
 }
 
-combinedStats <- function (DataUse, biomarkerField, stat){
-  basicsummary <- psych::describeBy(get(biomarkerField,DataUse),
-                                    get(aggregationField,DataUse),
+combinedStats <- function (survey_data, biomarkerField, stat){
+  basicsummary <- psych::describeBy(get(biomarkerField, survey_data),
+                                    get(aggregationField, survey_data),
                                     mat = TRUE, digits = 2) %>% srvyr::select(group1, n)
   combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"))
   combined <- dplyr::select(combined,aggregation, mean,
@@ -339,8 +353,8 @@ combinedStats <- function (DataUse, biomarkerField, stat){
   return(combined)
 }
 
-filterOutliers <- function(stat, DataUse){
-  data_with_stats <- dplyr::left_join(stat, DataUse, by = c("aggregation" = aggregationField))
+filterOutliers <- function(survey_data, stat){
+  data_with_stats <- dplyr::left_join(stat, survey_data, by = c("aggregation" = aggregationField))
   outliers <- data_with_stats %>%
     srvyr::rename("measurement" = all_of(biomarkerField)) %>%
     srvyr::filter(measurement < lowerOutlier | measurement > upperOutlier) %>%
