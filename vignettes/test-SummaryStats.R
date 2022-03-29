@@ -16,9 +16,7 @@ library(dplyr)
 library(BRINDA)
 
 # Set directory to a location where data files to test lie
-# This script will work if they are placed in a subdirectory
-# Set directory to a location where data files to test lie
-
+# This script will work if they are placed in a sub-directory
 setwd("./inst/production-data/")
 
 aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")

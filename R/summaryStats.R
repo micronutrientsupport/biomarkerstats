@@ -50,71 +50,6 @@
 #'
 #' @export
 
-# Main SummaryStats function
-SummaryStats <- function(theData,
-                         biomarkerField,
-                         aggregationField,
-                         groupId,
-                         thresholds,
-                         Flag_SurvWeightRun = FALSE,
-                         Flag_SurvWeightSupplied = FALSE,
-                         Flag_HaemAltAdjust = FALSE,
-                         Flag_SmokeAdjust = FALSE) {
-
-  processed_data <- preprocessData(theData)
-
-  survey_data <- zeroNegative(processed_data)
-
-  brinda_data <- applyBrinda(survey_data)
-
-  survey_data <- useAdjusted(brinda_data, biomarkerField)
-
-  # zinc adjustments
-
-  # zinc_adj_data <- zincAdjusted(brinda_adj_data)
-
-  # haemoglobin altitide adjustment (if statement: Flag_HaemAltAdjust = FALSE)
-
-  # haem_alt_adj_data <- haemAltAdjusted(zinc_adjusted_data)
-
-  # haemoglobin smoking adjustment (if statement: Flag_SmokeAdjust = FALSE)
-
-  # haem_smoke_adj_data <- haemSmokeAdjusted(zinc_adjusted_data)
-
-  survey_data <- ageCategories(survey_data)
-
-  survey_data <- calcThresholds(survey_data, thresholds)
-
-  DHSdesign <- createDHS(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
-
-  summary <- summaryDHS(survey_data, DHSdesign, biomarkerField)
-
-  # Calculate deficiency percentages for all threshold levels
-
-  thresh <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
-
-  # Calculate weighted survey summary statistics
-
-  stat <- weightedStats(survey_data)
-
-  # Combine weighted survey summary statistics and aggregate group counts
-
-  combined <- combinedStats(survey_data, biomarkerField, stat)
-
-  # Filter out upper and lower outliers
-
-  outliers <- filterOutliers(survey_data, stat)
-
-  # Output all results
-  output <- list(
-    "totalStats" = summary,
-    "aggregatedStats" = combined,
-    "aggregatedOutliers" = outliers,
-    "aggregatedThresholds" = thresh
-  )
-  return(output)
-}
-
 # Function definitions (as used in main function)
 
 preprocessData <- function(theData){
@@ -145,8 +80,8 @@ preprocessData <- function(theData){
 
 zeroNegative <- function(processed_data){
   processed_data[,biomarkerField] <- ifelse(processed_data[,biomarkerField] == 0,
-                                     0.001,
-                                     processed_data[,biomarkerField])
+                                            0.001,
+                                            processed_data[,biomarkerField])
   processed_data <- subset(processed_data, get(biomarkerField) > 0)
   return(processed_data)
 }
@@ -195,14 +130,14 @@ applyBrinda <- function(survey_data){
 useAdjusted <- function(brinda_data, biomarkerField) {
   brinda_data[, "original_biomarkerField"] <- brinda_data[, biomarkerField]
   brinda_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", brinda_data["rbp_adj"],
-                                     ifelse(biomarkerField == "retinol", brinda_data["sr_adj"],
-                                            ifelse(biomarkerField == "ferritin", brinda_data["sf_adj"],
-                                                   ifelse(biomarkerField == "stfr", brinda_data["stfr_adj"],
-                                                          ifelse(biomarkerField == "zinc", brinda_data["zn_adj"],
-                                                                 brinda_data[biomarkerField])
-                                                   )
-                                            )
-                                     )
+                                         ifelse(biomarkerField == "retinol", brinda_data["sr_adj"],
+                                                ifelse(biomarkerField == "ferritin", brinda_data["sf_adj"],
+                                                       ifelse(biomarkerField == "stfr", brinda_data["stfr_adj"],
+                                                              ifelse(biomarkerField == "zinc", brinda_data["zn_adj"],
+                                                                     brinda_data[biomarkerField])
+                                                       )
+                                                )
+                                         )
   )
   return(brinda_data)
 }
@@ -216,17 +151,17 @@ ageCategories <- function(survey_data){
   age <-survey_data[,"ageInMonths"]
   y <- 12
   survey_data[,"AgeCat"] <- ifelse(id == "WRA",
-                               ifelse(age >= (15*y) & age < (20*y), 1, ifelse(age >= (20*y) & age < (50*y), 2, NA)),
-                               ifelse(id == "PSC",
-                                      ifelse(age >= (0.5*y) & age < (2*y), 1, ifelse(age >= (2*y) & age < (5*y), 2, NA)),
-                                      ifelse(id == "SAC",
-                                             ifelse(age >= (5*y) & age < (12*y), 1, ifelse(age >= (12*y) & age < (15*y), 2, NA)),
-                                             ifelse(id == "MEN",
-                                                    ifelse(age >= (15*y) & age < (30*y), 1, ifelse(age >= (30*y) & age < (55*y), 2, NA)),
-                                                    NA
-                                             )
-                                      )
-                               )
+                                   ifelse(age >= (15*y) & age < (20*y), 1, ifelse(age >= (20*y) & age < (50*y), 2, NA)),
+                                   ifelse(id == "PSC",
+                                          ifelse(age >= (0.5*y) & age < (2*y), 1, ifelse(age >= (2*y) & age < (5*y), 2, NA)),
+                                          ifelse(id == "SAC",
+                                                 ifelse(age >= (5*y) & age < (12*y), 1, ifelse(age >= (12*y) & age < (15*y), 2, NA)),
+                                                 ifelse(id == "MEN",
+                                                        ifelse(age >= (15*y) & age < (30*y), 1, ifelse(age >= (30*y) & age < (55*y), 2, NA)),
+                                                        NA
+                                                 )
+                                          )
+                                   )
   )
   survey_data <- survey_data[complete.cases(survey_data["AgeCat"]),]
   survey_data[,"DemoGpCat"] <- paste0(id, ".", survey_data[,"AgeCat"])
@@ -361,3 +296,70 @@ filterOutliers <- function(survey_data, stat){
     srvyr::select(measurement, aggregation)
   return(outliers)
 }
+
+# Main SummaryStats function
+SummaryStats <- function(theData,
+                         biomarkerField,
+                         aggregationField,
+                         groupId,
+                         thresholds,
+                         Flag_SurvWeightRun = FALSE,
+                         Flag_SurvWeightSupplied = FALSE,
+                         Flag_HaemAltAdjust = FALSE,
+                         Flag_SmokeAdjust = FALSE) {
+
+  survey_data <- preprocessData(theData)
+
+  survey_data <- zeroNegative(survey_data)
+
+ # brinda_data <- applyBrinda(survey_data)
+
+  # survey_data <- useAdjusted(brinda_data, biomarkerField)
+
+  # zinc adjustments
+
+  # zinc_adj_data <- zincAdjusted(brinda_adj_data)
+
+  # haemoglobin altitide adjustment (if statement: Flag_HaemAltAdjust = FALSE)
+
+  # haem_alt_adj_data <- haemAltAdjusted(zinc_adjusted_data)
+
+  # haemoglobin smoking adjustment (if statement: Flag_SmokeAdjust = FALSE)
+
+  # haem_smoke_adj_data <- haemSmokeAdjusted(zinc_adjusted_data)
+
+  survey_data <- ageCategories(survey_data)
+
+  survey_data <- calcThresholds(survey_data, thresholds)
+
+  DHSdesign <- createDHS(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
+
+  summary <- summaryDHS(survey_data, DHSdesign, biomarkerField)
+
+  # Calculate deficiency percentages for all threshold levels
+
+  thresh <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+
+  # Calculate weighted survey summary statistics
+
+  stat <- weightedStats(survey_data)
+
+  # Combine weighted survey summary statistics and aggregate group counts
+
+  combined <- combinedStats(survey_data, biomarkerField, stat)
+
+  # Filter out upper and lower outliers
+
+  outliers <- filterOutliers(survey_data, stat)
+
+  # Output all results
+  output <- list(
+    "totalStats" = summary,
+    "aggregatedStats" = combined,
+    "aggregatedOutliers" = outliers,
+    "aggregatedThresholds" = thresh
+  )
+  return(output)
+}
+
+
