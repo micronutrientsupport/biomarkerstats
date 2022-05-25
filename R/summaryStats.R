@@ -174,10 +174,13 @@ calcThresholds <- function(survey_data, thresholds){
     lower <- as.numeric(thresholds[[thresholdName]]$lower)
     upper <- as.numeric(thresholds[[thresholdName]]$upper)
     if (lower == 0) {
+      # assign deficiency thresholds
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper, TRUE, FALSE)
     } else if (length(upper)==0) {
+      # assign excess thresholds
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower, TRUE, FALSE)
     } else {
+      # assign thresholds with two values
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper, TRUE, FALSE)
     }
   }
@@ -303,8 +306,8 @@ SummaryStats <- function(theData,
                          aggregationField,
                          groupId,
                          thresholds,
-                         Flag_SurvWeightRun = FALSE,
-                         Flag_SurvWeightSupplied = FALSE,
+                         Flag_SurvWeightRun = TRUE,
+                         Flag_SurvWeightSupplied = TRUE,
                          Flag_HaemAltAdjust = FALSE,
                          Flag_SmokeAdjust = FALSE) {
 
@@ -312,7 +315,7 @@ SummaryStats <- function(theData,
 
   survey_data <- zeroNegative(survey_data)
 
- # brinda_data <- applyBrinda(survey_data)
+  # brinda_data <- applyBrinda(survey_data)
 
   # survey_data <- useAdjusted(brinda_data, biomarkerField)
 
