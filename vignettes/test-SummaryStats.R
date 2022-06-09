@@ -57,23 +57,24 @@ errorFind <- function (results_list){
 }
 
 # Find errors in all aggregate group tests
+## CREATE LOOP/APPLY FOR EACH AGGREGATE GROUP (WQ/REG/URB)
 errors <- errorFind(final_results[[1]])
+errors_2 <- errorFind(final_results[[2]])
+errors_3 <- errorFind(final_results[[3]])
+## comparision of function before/after changes
 
-
-# Comparision of function before/after changes
-
-# tofixErrors <- function(compareErrors){
-#         to_fix <- compare_errors[,c("filename", "index", "error.new")]
-#         to_fix <- subset(to_fix, !is.na(error.new ))
-#         return(to_fix)
+# tofixerrors <- function(compareerrors){
+#        to_fix <- compare_errors[,c("filename", "index", "error.new")]
+#        to_fix <- subset(to_fix, !is.na(error.new ))
+#        return(to_fix)
 # }
-
-# to_fix <- rbind(c("wealthQunitile",errorFind(new_results_WQ)),
-#                 c("regionName",errorFind(new_results_rN)),
-#                 c("urbanity", errorFind(new_results_Ur)))
 #
-# # unique_errors <- as.data.frame(table(compare_errors["error.new"]))
-
+# to_fix <- rbind(c("wealthqunitile",errorfind(new_results_wq)),
+#                 c("regionname",errorfind(new_results_rn)),
+#                 c("urbanity", errorfind(new_results_ur)))
+#
+# unique_errors <- as.data.frame(table(compare_errors["error.new"]))
+#
 
 
 
