@@ -59,9 +59,10 @@ errorFind <- function (results_list){
 
 # Find errors in all aggregate group tests
 ## CREATE LOOP/APPLY FOR EACH AGGREGATE GROUP (WQ/REG/URB)
-errors <- errorFind(final_results[[1]])
-errors_2 <- errorFind(final_results[[2]])
-errors_3 <- errorFind(final_results[[3]])
+errors_wealthQuintile <- errorFind(final_results[[1]])
+errors_regionName <- errorFind(final_results[[2]])
+errors_urbanity <- errorFind(final_results[[3]])
+
 ## comparision of function before/after changes
 
 # tofixerrors <- function(compareerrors){
