@@ -18,6 +18,7 @@ library(BRINDA)
 # Set directory to a location where data files to test lie
 # This script will work if they are placed in a sub-directory
 setwd("./inst/production-data/")
+setwd("C:/Users/sbztb3/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/")
 
 aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
 

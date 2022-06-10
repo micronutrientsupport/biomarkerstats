@@ -182,7 +182,7 @@ calcThresholds <- function(survey_data, biomarkerField, thresholds){
       # assign excess thresholds
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower, TRUE, FALSE)
     } else {
-      # assign thresholds with two values
+      # assign thresholds between two values
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper, TRUE, FALSE)
     }
   }
@@ -337,7 +337,7 @@ SummaryStats <- function(theData,
 
   survey_data <- ageCategories(survey_data)
 
-  survey_data <- calcThresholds(survey_data, thresholds = thresholds)
+  survey_data <- calcThresholds(survey_data, thresholds = thresholds, biomarkerField)
 
   DHSdesign <- createDHS(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
 
