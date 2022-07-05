@@ -13,8 +13,6 @@ Flag_SurvWeightSupplied <- TRUE
 Flag_HaemAltAdjust <- FALSE
 Flag_SmokeAdjust <- FALSE
 
-
-
 # S3-agp-WRA-wealthQuintile-theData
 load(file=paste0("C:/Users/sbztb3/Documents/University_of_Nottingham/biomarkerstats/inst/production-data/S3-", biomarkerField, "-", groupId, "-", aggregationField, "-theData.rda"))
 

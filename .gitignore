@@ -8,3 +8,4 @@ data/liveSurvey.rda
 inst/production-data/
 R/archive-scripts/
 test-SummaryStats-v1.R
+development_tests/*.rda
