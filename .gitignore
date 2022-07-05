@@ -12,3 +12,4 @@ tests/development_tests/run_one_MN.R
 tests/development_tests/*.rda
 tests/development_tests/*.csv
 tests/development_tests/*.sh
+tests/development_tests/*.txt
