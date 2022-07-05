@@ -15,20 +15,23 @@
 #'
 #' @param thresholds the thresholds
 #'
-#' @param Flag_SurvWeightRun If survey weights have already been run (?) set
-#' Flag_SurvWeightRun = TRUE, else default is FALSE and the survey weights will
-#' be run
+#' @param Flag_SurvWeightRun By default this analysis takes into account
+#' the survey weights (must be supplied). Otherwise, set Flag_SurvWeightRun = FALSE
+#' to set run the analysis without survey weights.
 #'
-#' @param Flag_SurvWeightSupplied If survey weights have already been supplied (?) set
-#' Flag_SurvWeightupplied = TRUE, else default is FALSE
+#' @param HaemAltAdjust Haemoglobin will be adjusted for altitude (Sullivan et al. 2008).
+#' The default argument is set to TRUE, if you would not like to apply this adjustment set HaemAltAdjust = FALSE
 #'
-#' @param Flag_HaemAltAdjust If Haemogoblin adjustment for altitude has already
-#' been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
-#' Haemoglobin will be adjusted
+#' @param HaemSmokeAdjust Haemoglobin will be adjusted for smoking status (Sullivan et al. 2008).
+#' This function assumes the amount of cigarettes per day is not known and assesses only
+#' if the individual is a smoker or not. The default argument is set to TRUE,
+#' if you would not like to apply this adjustment set HaemSmokeAdjust = FALSE
 #'
-#' @param Flag_SmokeAdjust If Haemogoblin adjustment for smoking status has already
-#' been applied set Flag_HaemAltAdjust = TRUE, else default is FALSE and the
-#' Haemoglobin will be adjusted
+#' @param ZincAdjust Zinc will be adjusted for based on age group, sex, time of day and fasting status (IZiNCG)
+#' The default argument is set to TRUE, if you would not like to apply this adjustment set ZincAdjust = FALSE
+#'
+#' !!!! WRITE NOTE ABOUT STFR, DEFAULT THRESHOLD USED IS 8.3(mg/l)
+#' !!!! Add Sullivan reference (Haemoglobin)
 #'
 #' @references
 #' \itemize{
@@ -144,9 +147,50 @@ useAdjusted <- function(brinda_data, biomarkerField) {
   return(brinda_data)
 }
 
-# zincAdjusted <- function(survey_data, biomarkerField) {}
+zincAdjust <- function(survey_data, biomarkerField, thresholds){
+  for (thresholdName in names(thresholds)) {
+    lower <- as.numeric(thresholds[[thresholdName]]$lower)
+    upper <- as.numeric(thresholds[[thresholdName]]$upper)
+    cond <- survey_data$time_of_day_sampled == thresholds[[thresholdName]]$condition$time_of_day_sampled &
+      survey_data$was_fasting == thresholds[[thresholdName]]$condition$was_fasting &
+      survey_data$sex == thresholds[[thresholdName]]$condition$sex &
+      if (thresholds[[thresholdName]]$condition$age_less_greater == "<"){
+        survey_data$age_in_months < thresholds[[thresholdName]]$condition$age_in_months
+      } else if (thresholds[[thresholdName]]$condition$age_less_greater == ">="){
+        survey_data$age_in_months >= thresholds[[thresholdName]]$condition$age_in_months
+      }
 
-# haemAdjusted <- function(survey_data, biomarkerField)
+    if (lower == 0) {
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+    } else if (length(upper) == 0) {
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE, FALSE)
+    } else if (upper !=0 & lower !=0) {
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+    } else {
+      survey_data[[thresholdName]] <- FALSE
+    }
+  }
+  return(survey_data)
+}
+
+haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
+  survey_data[, "haemoglobin"] <-
+    ifelse(survey_data[,"altitude_in_metres"] >= 1000,
+           survey_data[, "haemoglobin"] - (-0.032*(survey_data[,"altitude_in_metres"]*0.0032808)
+                                           + (0.022*(survey_data[,"altitude_in_metres"]*0.0032808)^2)),
+           survey_data[, "haemoglobin"]
+    )
+  return(survey_data)
+}
+
+haemSmokeAdjust <- function(survey_data, thresholds, biomarkerField){
+  survey_data[, "haemoglobin"] <-
+    ifelse(survey_data[,"is_smoker"] == TRUE,
+           survey_data[,"haemoglobin"] - 0.3,
+           survey_data[,"haemoglobin"]
+    )
+  return(survey_data)
+}
 
 ageCategories <- function(survey_data){
   id <- survey_data[,"groupId"]
@@ -189,6 +233,7 @@ calcThresholds <- function(survey_data, biomarkerField, thresholds){
   return(survey_data)
 }
 
+##### CHANGE THIS FUNCTION! TO RUN WITHOUT Flag_SurvWeightSupplied
 createDHS <- function(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied){
   # Create a Demographic and Health Survey (DHS)
   if (Flag_SurvWeightRun == TRUE & Flag_SurvWeightSupplied == TRUE) {
@@ -309,31 +354,38 @@ SummaryStats <- function(theData,
                          aggregationField,
                          groupId,
                          thresholds,
-                         Flag_SurvWeightRun = TRUE,
-                         Flag_SurvWeightSupplied = TRUE,
-                         Flag_HaemAltAdjust = FALSE,
-                         Flag_SmokeAdjust = FALSE) {
+                         Flag_SurvWeightRun = FALSE, # keep this
+                         Flag_SurvWeightSupplied = FALSE, # remove this!
+                         BRINDA = FALSE, # for inflammation
+                         HaemAltAdjust = TRUE,
+                         HaemSmokeAdjust = TRUE,
+                         ZincAdjust = TRUE) {
 
   survey_data <- preprocessData(theData, biomarkerField,
                                 aggregationField, groupId)
 
-  survey_data <- zeroNegative(survey_data, biomarkerField)
+  # survey_data <- zeroNegative(survey_data, biomarkerField)
 
-  # brinda_data <- applyBrinda(survey_data, biomarkerField)
+  # brinda_data <- applyBrinda(survey_data, biomarkerField) #IF STATMENT IF WOULD LIKE TO RUN BRINDA ADJUSTMENT?
 
-  # survey_data <- useAdjusted(brinda_data, biomarkerField)
+  # survey_data <- useAdjusted(brinda_data, biomarkerField) #CHANGE NAME AS IF NOT BRINDA ADJUSTED RETURNS UNADJUSTED VALUE
 
-  # zinc adjustments
 
-  # zinc_adj_data <- zincAdjusted(brinda_adj_data)
 
-  # haemoglobin altitide adjustment (if statement: Flag_HaemAltAdjust = FALSE)
+  # if (biomarkerField == "zinc" && ZincAdjust == TRUE){
+  #   survey_data <- zincAdjust(survey_data, thresholds = thresholds, biomarkerField)
+  # }
 
-  # haem_alt_adj_data <- haemAltAdjusted(zinc_adjusted_data)
+  # if (biomarkerField == "haemoglobin" && HaemAltAdjust == TRUE){
+  #   survey_data <- haemAltAdjust(survey_data,  thresholds = thresholds, biomarkerField)
+  # }
 
-  # haemoglobin smoking adjustment (if statement: Flag_SmokeAdjust = FALSE)
-
-  # haem_smoke_adj_data <- haemSmokeAdjusted(zinc_adjusted_data)
+  # Smoking status is not typically recorded with SAC / PSC
+  # if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
+  #   survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
+  # } else {
+  #  stop("Smoking status (is_smoker), has not been recorded")
+  # }
 
   survey_data <- ageCategories(survey_data)
 
