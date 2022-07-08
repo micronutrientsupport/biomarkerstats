@@ -1,4 +1,4 @@
-#' Development tool - Tests SummaryStats function over multiple datasets
+# Development tool - Tests SummaryStats function over multiple datasets
 
 # 1) Change working directory to this (source) file's directory
   # (Session > Set Working Directory > To Source File Location)
@@ -12,13 +12,12 @@ library(dplyr)
 library(BRINDA)
 
 aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
-
+# aggregateGroup <- c("wealthQuintile")
 testAll <- function(aggregateGroup, script, prefix) {
   # identify the files for analysis
   extension <- paste0("-", aggregateGroup, "-theData.rda")
   files <- strsplit(list.files (".", extension), extension)
-  print(aggregateGroup)
-  print(script)
+  message(paste("Testing", aggregateGroup, "with script", script))
   # Function to loop over each file
   testaggregateGroup <- function(x) {
     # load in the data file
@@ -83,7 +82,7 @@ old_errors_uR <- errorFind(old_results[[3]])
 diff <- as.data.frame(all.equal(new_results, old_results))
 
 
-errors_to_fix <-  c("wealthqunitile", old_errors_wQ)
+# errors_to_fix <-  c("wealthqunitile", old_errors_wQ)
 
 ## comparision of function before/after changes
 

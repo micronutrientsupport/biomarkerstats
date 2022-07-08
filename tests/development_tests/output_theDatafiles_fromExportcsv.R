@@ -15,7 +15,9 @@ fileExtension <- function(extension){
 # invoke the function by stating the extension of the file
 input_files <- fileExtension(extension = "csv")
 extension <- input_files$extension
-country_list <- input_files$country_list
+#country_list <- input_files$country_list
+country_list <- c("Ethiopia", "Malawi")
+
 
 # Set biomarkers for analysis for each country
 biomarker_list_ethiopia <- c("agp",
