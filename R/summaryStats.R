@@ -15,8 +15,8 @@
 #'
 #' @param thresholds the thresholds
 #'
-#' @param Flag_SurvWeightRun By default this analysis takes into account
-#' the survey weights (must be supplied). Otherwise, set Flag_SurvWeightRun = FALSE
+#' @param RunSurveyWeights By default this analysis takes into account
+#' the survey weights (must be supplied). Otherwise, set RunSurveyWeights = FALSE
 #' to set run the analysis without survey weights.
 #'
 #' @param HaemAltAdjust Haemoglobin will be adjusted for altitude (Sullivan et al. 2008).
@@ -55,32 +55,33 @@
 
 # Function definitions (as used in main function)
 
-preprocessData <- function(theData,biomarkerField,
+preprocessData <- function(survey_data, biomarkerField,
                            aggregationField,
                            groupId){
-  theData[,"surveyStrata"][is.na(theData[, "surveyStrata"])] <- 0
-  theData[,c("surveyStrata","surveyWeights")] <- lapply(theData[, c("surveyStrata","surveyWeights")], as.integer)
-  theData[, biomarkerField] <- as.numeric(theData[, biomarkerField])
+  survey_data[,"surveyStrata"][is.na(survey_data[, "surveyStrata"])] <- 0
+  survey_data[,"surveyStrata"] <- as.numeric(survey_data[,"surveyStrata"])
+  survey_data[,"surveyWeights"] <- as.numeric(survey_data[,"surveyWeights"])
+  survey_data[, biomarkerField] <- as.numeric(survey_data[, biomarkerField])
   biomarkers <- c("agp", "crp", "ferritin",
                   "haemoglobin", "iodine", "psFolate",
                   "rbcFolate", "rbp", "retinol",
                   "stfr", "vitaminB12", "zinc")
   for(i in seq(biomarkers)){
-    if (biomarkers[i] %in% names(theData)){
-      theData[, biomarkers[i]] <- as.numeric(theData
+    if (biomarkers[i] %in% names(survey_data)){
+      survey_data[, biomarkers[i]] <- as.numeric(survey_data
                                              [, biomarkers[i]])
     }
   }
-  theData[, aggregationField] <- as.character(theData[, aggregationField])
-  theData <- theData[complete.cases(theData[biomarkerField]), ]
-  theData <- theData[complete.cases(theData[aggregationField]), ]
-  theData <- theData[theData[,"groupId"] == groupId, ]
-  theData[, "isPregnant"] <- as.logical(theData[, "isPregnant"])
-  theData <- theData[is.na(theData["isPregnant"])|theData["isPregnant"]== FALSE,]
+  survey_data[, aggregationField] <- as.character(survey_data[, aggregationField])
+  survey_data <- survey_data[complete.cases(survey_data[biomarkerField]), ]
+  survey_data <- survey_data[complete.cases(survey_data[aggregationField]), ]
+  survey_data <- survey_data[survey_data[,"groupId"] == groupId, ]
+  survey_data[, "isPregnant"] <- as.logical(survey_data[, "isPregnant"])
+  survey_data <- survey_data[is.na(survey_data["isPregnant"])|survey_data["isPregnant"]== FALSE,]
   # Select values that are under the physiological limit for micronutrients
   PhysLim <- 6000
-  theData <- theData[which(get(biomarkerField, theData) <= PhysLim), ]
-  return(theData)
+  survey_data <- survey_data[which(get(biomarkerField, survey_data) <= PhysLim), ]
+  return(survey_data)
 }
 
 zeroNegative <- function(processed_data, biomarkerField){
@@ -233,10 +234,9 @@ calcThresholds <- function(survey_data, biomarkerField, thresholds){
   return(survey_data)
 }
 
-##### CHANGE THIS FUNCTION! TO RUN WITHOUT Flag_SurvWeightSupplied
-createDHS <- function(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied){
+createDHS <- function(survey_data, RunSurveyWeights){
   # Create a Demographic and Health Survey (DHS)
-  if (Flag_SurvWeightRun == TRUE & Flag_SurvWeightSupplied == TRUE) {
+  if (RunSurveyWeights == TRUE) {
     DHSdesign <- survey::svydesign(id = survey_data[,"surveyCluster"], strata = survey_data[,"surveyStrata"], weights = survey_data[,"surveyWeights"] / 1000000, data = survey_data, nest = TRUE)
     options("survey.lonely.psu" = "adjust")
   } else {
@@ -354,12 +354,11 @@ SummaryStats <- function(theData,
                          aggregationField,
                          groupId,
                          thresholds,
-                         Flag_SurvWeightRun = FALSE, # keep this
-                         Flag_SurvWeightSupplied = FALSE, # remove this!
-                         BRINDA = FALSE, # for inflammation
+                         RunSurveyWeights = FALSE,
+                         BRINDA = FALSE,
                          HaemAltAdjust = TRUE,
                          HaemSmokeAdjust = TRUE,
-                         ZincAdjust = TRUE) {
+                         ZincAdjust = TRUE, ...) {
 
   survey_data <- preprocessData(theData, biomarkerField,
                                 aggregationField, groupId)
@@ -391,7 +390,7 @@ SummaryStats <- function(theData,
 
   survey_data <- calcThresholds(survey_data, thresholds = thresholds, biomarkerField)
 
-  DHSdesign <- createDHS(survey_data, Flag_SurvWeightRun, Flag_SurvWeightSupplied)
+  DHSdesign <- createDHS(survey_data, RunSurveyWeights)
 
   summary <- summaryDHS(survey_data, DHSdesign, biomarkerField)
 

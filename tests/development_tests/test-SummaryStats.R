@@ -68,7 +68,7 @@ new_errors_uR <- errorFind(new_results[[3]])
 
 
 old_results <- lapply(aggregateGroup,
-                      script = "../../R/archive-scripts/pre-full-modularisation.R",
+                      script = "../../R/archive-scripts/summary-stats-github.R",
                       prefix = "S2-|S3-",
                       testAll)
 
