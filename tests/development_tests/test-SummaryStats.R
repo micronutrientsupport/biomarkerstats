@@ -5,6 +5,8 @@
 
 # 2) Place data files in the same location as this script
 
+# MAKE SURE TO HAVE MOST RECENT PACKAGE UPDATES: AUTOMATE
+
 library(srvyr)
 library(jtools)
 library(survey)
@@ -55,6 +57,7 @@ new_results <- lapply(aggregateGroup,
                       script = "../../R/summaryStats.R",
                       prefix = "S2-|S3-",
                       testAll)
+names(new_results) <- aggregateGroup
 
 new_errors_wQ <- errorFind(new_results[[1]])
 new_errors_rN <- errorFind(new_results[[2]])
@@ -72,6 +75,8 @@ old_results <- lapply(aggregateGroup,
                       prefix = "S2-|S3-",
                       testAll)
 
+names(old_results) <- aggregateGroup
+
 # Find errors in all aggregate group tests
 
 old_errors_wQ <- errorFind(old_results[[1]])
@@ -81,6 +86,10 @@ old_errors_uR <- errorFind(old_results[[3]])
 # Compare differences between results
 diff <- as.data.frame(all.equal(new_results, old_results))
 
+brinda_results <- lapply(aggregateGroup,
+                         script = "../../R/summaryStats.R",
+                         prefix = "S2-|S3-",
+                         testAll)
 
 # errors_to_fix <-  c("wealthqunitile", old_errors_wQ)
 

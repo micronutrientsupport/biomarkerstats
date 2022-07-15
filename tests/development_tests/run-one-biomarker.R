@@ -13,7 +13,7 @@ library(dplyr)
 library(BRINDA)
 
 prefix <- "S3-"
-biomarkerField <- "zinc"
+biomarkerField <- "ferritin"
 groupId <- "WRA"
 aggregationField <- "wealthQuintile"
 RunSurveyWeights <- TRUE
@@ -30,16 +30,30 @@ load(file=paste0(biomarkerField, "-", groupId, "-thresholds.rda"))
 
 # run SummaryStats function
 source("../../R/SummaryStats.R")
-with_weights_output <- SummaryStats(theData = theData,
-                       biomarkerField = biomarkerField,
-                       aggregationField = aggregationField,
-                       groupId = groupId,
+output <- SummaryStats(theData = theData,
+                       biomarkerField = "ferritin",
+                       aggregationField = "wealthQuintile",
+                       groupId = "WRA",
                        thresholds = thresholds,
                        RunSurveyWeights = TRUE,
-                       BRINDA = FALSE,
+                       Brinda = FALSE,
                        HaemAltAdjust = TRUE,
                        HaemSmokeAdjust = TRUE,
                        ZincAdjust = TRUE)
+
+BRINDA <- SummaryStats(theData = theData,
+                       biomarkerField = "ferritin",
+                       aggregationField = "wealthQuintile",
+                       groupId = "WRA",
+                       thresholds = thresholds,
+                       RunSurveyWeights = TRUE,
+                       Brinda = TRUE,
+                       HaemAltAdjust = TRUE,
+                       HaemSmokeAdjust = TRUE,
+                       ZincAdjust = TRUE)
+
+diff_brinda <- as.data.frame(all.equal(BRINDA, output))
+
 
 without_weights_output <- SummaryStats(theData = theData,
                                        biomarkerField = biomarkerField,

@@ -63,9 +63,9 @@ preprocessData <- function(survey_data, biomarkerField,
   survey_data[,"surveyWeights"] <- as.numeric(survey_data[,"surveyWeights"])
   survey_data[, biomarkerField] <- as.numeric(survey_data[, biomarkerField])
   biomarkers <- c("agp", "crp", "ferritin",
-                  "haemoglobin", "iodine", "psFolate",
-                  "rbcFolate", "rbp", "retinol",
-                  "stfr", "vitaminB12", "zinc")
+                  "haemoglobin", "iodine", "ps_folate",
+                  "rbc_folate", "rbp", "retinol",
+                  "stfr", "vitamin_b12", "zinc")
   for(i in seq(biomarkers)){
     if (biomarkers[i] %in% names(survey_data)){
       survey_data[, biomarkers[i]] <- as.numeric(survey_data
@@ -354,8 +354,8 @@ SummaryStats <- function(theData,
                          aggregationField,
                          groupId,
                          thresholds,
-                         RunSurveyWeights = FALSE,
-                         BRINDA = FALSE,
+                         RunSurveyWeights = TRUE,
+                         Brinda = TRUE,
                          HaemAltAdjust = TRUE,
                          HaemSmokeAdjust = TRUE,
                          ZincAdjust = TRUE, ...) {
@@ -363,12 +363,13 @@ SummaryStats <- function(theData,
   survey_data <- preprocessData(theData, biomarkerField,
                                 aggregationField, groupId)
 
-  # survey_data <- zeroNegative(survey_data, biomarkerField)
+  survey_data <- zeroNegative(survey_data, biomarkerField)
 
-  # brinda_data <- applyBrinda(survey_data, biomarkerField) #IF STATMENT IF WOULD LIKE TO RUN BRINDA ADJUSTMENT?
+  if (Brinda == TRUE){
+  survey_data <- applyBrinda(survey_data, biomarkerField, groupId)
 
-  # survey_data <- useAdjusted(brinda_data, biomarkerField) #CHANGE NAME AS IF NOT BRINDA ADJUSTED RETURNS UNADJUSTED VALUE
-
+  survey_data <- useAdjusted(survey_data, biomarkerField)
+  }
 
 
   # if (biomarkerField == "zinc" && ZincAdjust == TRUE){
