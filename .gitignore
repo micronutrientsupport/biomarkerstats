@@ -5,8 +5,6 @@
 .httr-oauth
 .DS_Store
 data/liveSurvey.rda
-tests/development_tests/test-SummaryStats-v1.R
-tests/development_tests/run_one_MN.R
 tests/development_tests/*.rda
 tests/development_tests/*.csv
 tests/development_tests/*.sh
