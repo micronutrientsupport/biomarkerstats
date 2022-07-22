@@ -1,9 +1,12 @@
-Hello! 
+Hello this area is to test the SummaryStats function over all datafiles. 
 
-1) Download my Github repository 
-LINK: 
-- Click Code (Green button) 
-- Download ZIP
+If you would like to run try this locally, you can: 
+
+1) Download this Github repository 
+https://github.com/tb011/biomarkerstats/
+
+    1.1) Click 'Code' (Green button) 
+    1.2) Click 'Download ZIP'
 
 2) Extract the zip file
 
