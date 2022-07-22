@@ -1,4 +1,4 @@
-#' Validation
+#' @title Validation
 #'
 #' @description
 #' Validates input files and parameters for the SummaryStats function

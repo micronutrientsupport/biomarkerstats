@@ -1,11 +1,10 @@
-# Development tool - Tests SummaryStats function over multiple datasets
+## Development tool - Tests SummaryStats function over multiple datasets to
+## see which datasets / parts of SummaryStats function are erroneous
 
 # 1) Change working directory to this (source) file's directory
-  # (Session > Set Working Directory > To Source File Location)
+# (RStudio: Session > Set Working Directory > To Source File Location)
 
 # 2) Place data files in the same location as this script
-
-# MAKE SURE TO HAVE MOST RECENT PACKAGE UPDATES: AUTOMATE
 
 library(srvyr)
 library(jtools)
@@ -13,8 +12,6 @@ library(survey)
 library(dplyr)
 library(BRINDA)
 
-aggregateGroup <- c("wealthQuintile", "regionName", "urbanity")
-# aggregateGroup <- c("wealthQuintile")
 testAll <- function(aggregateGroup, script, prefix) {
   # identify the files for analysis
   extension <- paste0("-", aggregateGroup, "-theData.rda")
@@ -53,73 +50,54 @@ errorFind <- function (results_list){
   return(errors)
 }
 
+# Aggregate groups to analyse
+aggregateGroup <- c("wealth_quintile", "region", "urbanity")
+
+# run function over all files in current directory
 new_results <- lapply(aggregateGroup,
-                      script = "../../R/summaryStats.R",
+                      script =  "../../R/summaryStats.R",
                       prefix = "S2-|S3-",
                       testAll)
+
 names(new_results) <- aggregateGroup
 
-new_errors_wQ <- errorFind(new_results[[1]])
-new_errors_rN <- errorFind(new_results[[2]])
-new_errors_uR <- errorFind(new_results[[3]])
+new_errors_wealth_quintile <- errorFind(new_results[[1]])
+new_errors_region <- errorFind(new_results[[2]])
+new_errors_urbanity <- errorFind(new_results[[3]])
 
+# If you would like to run the Script over just Malawi OR Ethiopia files
+# Change prefix = "S2-" or "S3-" to match country code
+# Remove S2/S3 files completely from the directory
+# (do not add the to a sub-directory the source directory)
 
 # If you would like to compare the difference between two scripts, (for instance,
 # if you have made some changes to the function and would like to see if this
 # has changed the functionality of your code), then modify the "script" argument
 # below to the SummaryStats script you would like to compare changes against.
 
+# Run a different version of the script with all "S2 & S3" files
 
 old_results <- lapply(aggregateGroup,
-                      script = "../../R/archive-scripts/summary-stats-github.R",
+                      script = , # link to old script version
                       prefix = "S2-|S3-",
                       testAll)
 
-names(old_results) <- aggregateGroup
-
-# Find errors in all aggregate group tests
+#  Find errors in all aggregate group tests
 
 old_errors_wQ <- errorFind(old_results[[1]])
 old_errors_rN <- errorFind(old_results[[2]])
 old_errors_uR <- errorFind(old_results[[3]])
 
-# Compare differences between results
-diff <- as.data.frame(all.equal(new_results, old_results))
+# # Compare differences between results
+ diff <- as.data.frame(all.equal(new_results, old_results))
 
-brinda_results <- lapply(aggregateGroup,
-                         script = "../../R/summaryStats.R",
-                         prefix = "S2-|S3-",
-                         testAll)
+## If you would like to "walk through the function" to investigate how it works:
 
-# errors_to_fix <-  c("wealthqunitile", old_errors_wQ)
+aggregateGroup <- "region"
+script <- "../../R/summaryStats.R"
+prefix <- "S2-"
+extension <- paste0("-", aggregateGroup, "-theData.rda")
+files <- strsplit(list.files (".", extension), extension)
+x <- "S2-agp-MEN"
 
-## comparision of function before/after changes
-
-# tofixErrors <- function(compareErrors) {
-#   to_fix <- compare_errors[, c("filename", "index", "error.new")]
-#   to_fix <- subset(to_fix,!is.na(error.new))
-#   return(to_fix)
-# }
-#
-# to_fix <- tofixErrors(compareErrors)
-#
-# unique_errors <- as.data.frame(table(compare_errors["error.new"]))
-#
-# tofixerrors <- function(compareerrors) {
-#   to_fix <- compare_errors[, c("filename", "index", "error.new")]
-#   to_fix <- subset(to_fix,!is.na(error.new))
-#   return(to_fix)
-# }
-#
-# errors_to_fix_wQ <-
-#   data.frame(c("wealthqunitile", new_errors_wQ), check.names = F)
-# errors_to_fix_rN <-
-#   data.frame(c("regionname", new_errors_rN), check.names = F)
-# errors_to_fix_uR <-
-#   data.frame(c("urbanity", new_errors_uR), check.names = F)
-#
-# errors_to_fix <- cbind(errors_to_fix_wQ, stack(errors_to_fix_rN))
-#
-#
-# unique_errors <- as.data.frame(table(compare_errors["error.new"]))
-
+# Now you can execute the testAll function line by line.

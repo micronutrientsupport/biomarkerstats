@@ -1,10 +1,10 @@
-#' Biomarker Data
+#' @name SummaryStats
 #'
-#' Computes summary statistics for National Micronutrient Surveys.
+#' @title Computes summary statistics for National Micronutrient Surveys
 #'
-#' @param theData the data
+#' @param theData Micronutrient survey data
 #'
-#' @param groupId the group
+#' @param group_id group id of interest: WRA, PSC, SAC, MEN
 #'
 #' @param biomarkerField the field name of the biomarker measurement data.
 #' When a zero value is observed in the biomarkerField, there is a nominal value
@@ -13,36 +13,43 @@
 #'
 #' @param aggregationField the field name to aggregate by
 #'
-#' @param thresholds the thresholds
+#' @param thresholds the biomarker threshold input to determine the level of
+#' deficiency or excess for an individual
 #'
 #' @param RunSurveyWeights By default this analysis takes into account
 #' the survey weights (must be supplied). Otherwise, set RunSurveyWeights = FALSE
 #' to set run the analysis without survey weights.
 #'
-#' @param HaemAltAdjust Haemoglobin will be adjusted for altitude (Sullivan et al. 2008).
-#' The default argument is set to TRUE, if you would not like to apply this adjustment set HaemAltAdjust = FALSE
+#' @param HaemAltAdjust Haemoglobin will be adjusted for altitude.
+#' The default argument is set to TRUE, if you would not like to apply this
+#' adjustment set HaemAltAdjust = FALSE
 #'
-#' @param HaemSmokeAdjust Haemoglobin will be adjusted for smoking status (Sullivan et al. 2008).
-#' This function assumes the amount of cigarettes per day is not known and assesses only
-#' if the individual is a smoker or not. The default argument is set to TRUE,
-#' if you would not like to apply this adjustment set HaemSmokeAdjust = FALSE
+#' @param HaemSmokeAdjust Haemoglobin will be adjusted for smoking status.
+#' This function assumes the amount of cigarettes per day is not known
+#' and assesses only if the individual is a smoker or not. The default argument
+#' is set to TRUE, if you would not like to apply this adjustment set
+#' HaemSmokeAdjust = FALSE
 #'
-#' @param ZincAdjust Zinc will be adjusted for based on age group, sex, time of day and fasting status (IZiNCG)
-#' The default argument is set to TRUE, if you would not like to apply this adjustment set ZincAdjust = FALSE
+#' @param ZincCutoff The zinc cutoff concentrations will be based on age, sex,
+#' time of day and fasting status. The default argument is set to TRUE,
+#' if you would not like to apply this adjustment set ZincCutoff = FALSE
 #'
-#' !!!! WRITE NOTE ABOUT STFR, DEFAULT THRESHOLD USED IS 8.3(mg/l)
-#' !!!! Add Sullivan reference (Haemoglobin)
+#' @details The default threshold level for deficiency used for STFR is 8.3(mg/l)
+#' for all age groups. Users should confirm the threshold according to
+#' manufacturer's suggested values.
 #'
 #' @references
 #' \itemize{
 #' \item{}{Luo, H.; Addo, Y.; Jahan, A (2021) BRINDA: Computation of BRINDA
-#' Adjusted Micronutrient Biomarkers for Inflammation.
-#' R package version 0.1.2, https://github.com/hanqiluo/BRINDA}
+#' Adjusted Micronutrient Biomarkers for Inflammation. R package version 0.1.2,
+#' https://github.com/hanqiluo/BRINDA}
 #' \item{}{International Zinc Nutrition Consultative Group
-#' (IZiNCG). Assessing Population Zinc Status with
-#' Serum Zinc Concentration. IZiNCG Technical Brief
-#' No. 2. 2nd ed. Davis, CA: University of California;
+#' (IZiNCG). Assessing Population Zinc Status with #' Serum Zinc Concentration.
+#' IZiNCG Technical Brief No. 2. 2nd ed. Davis, CA: University of California;
 #' 2012. www.izincg.org}
+#' \item{}{Sullivan, K. M., Mei, Z., Grummer-Strawn, L., & Parvanta, I. (2008).
+#' Haemoglobin adjustments to define anaemia. Tropical Medicine & International
+#' Health, 13(10), 1267-1271.}
 #' }
 #'
 #' @importFrom magrittr %>%
@@ -57,10 +64,10 @@
 
 preprocessData <- function(survey_data, biomarkerField,
                            aggregationField,
-                           groupId){
-  survey_data[,"surveyStrata"][is.na(survey_data[, "surveyStrata"])] <- 0
-  survey_data[,"surveyStrata"] <- as.numeric(survey_data[,"surveyStrata"])
-  survey_data[,"surveyWeights"] <- as.numeric(survey_data[,"surveyWeights"])
+                           group_id){
+  survey_data[,"survey_strata"][is.na(survey_data[, "survey_strata"])] <- 0
+  survey_data[,"survey_strata"] <- as.numeric(survey_data[,"survey_strata"])
+  survey_data[,"survey_weight"] <- as.numeric(survey_data[,"survey_weight"])
   survey_data[, biomarkerField] <- as.numeric(survey_data[, biomarkerField])
   biomarkers <- c("agp", "crp", "ferritin",
                   "haemoglobin", "iodine", "ps_folate",
@@ -75,9 +82,8 @@ preprocessData <- function(survey_data, biomarkerField,
   survey_data[, aggregationField] <- as.character(survey_data[, aggregationField])
   survey_data <- survey_data[complete.cases(survey_data[biomarkerField]), ]
   survey_data <- survey_data[complete.cases(survey_data[aggregationField]), ]
-  survey_data <- survey_data[survey_data[,"groupId"] == groupId, ]
-  survey_data[, "isPregnant"] <- as.logical(survey_data[, "isPregnant"])
-  survey_data <- survey_data[is.na(survey_data["isPregnant"])|survey_data["isPregnant"]== FALSE,]
+  survey_data <- survey_data[survey_data[,"group_id"] == group_id, ]
+  # Assumption pregnant women have been removed from dataset
   # Select values that are under the physiological limit for micronutrients
   PhysLim <- 6000
   survey_data <- survey_data[which(get(biomarkerField, survey_data) <= PhysLim), ]
@@ -92,10 +98,9 @@ zeroNegative <- function(processed_data, biomarkerField){
   return(processed_data)
 }
 
-applyBrinda <- function(survey_data, biomarkerField, groupId){
+applyBrinda <- function(survey_data, biomarkerField, group_id, brinda_biomarkers){
 
-  if(biomarkerField %in% c("rbp", "retinol", "ferritin",
-                           "stfr", "zinc")) {
+  if(biomarkerField %in%  brinda_biomarkers) {
 
     brinda <- "BRINDA(dataset = survey_data,"
 
@@ -117,11 +122,11 @@ applyBrinda <- function(survey_data, biomarkerField, groupId){
     crp <- ifelse ("crp" %in% names(survey_data),
                    "crp_varname = crp,", "crp_varname = ,")
 
-    if (groupId == "WRA"){
+    if (group_id == "WRA"){
       pop <-"population = WRA)"
-    } else if (groupId == "PSC"){
+    } else if (group_id == "PSC"){
       pop <- "population = PSC)"
-    } else if (groupId == "SAC" || groupId == "MEN"){
+    } else if (group_id == "SAC" || group_id == "MEN"){
       pop <- "population = OTHER)"
     }
     return(eval(parse(text=paste(brinda,
@@ -133,22 +138,25 @@ applyBrinda <- function(survey_data, biomarkerField, groupId){
   }
 }
 
-useAdjusted <- function(brinda_data, biomarkerField) {
-  brinda_data[, "original_biomarkerField"] <- brinda_data[, biomarkerField]
-  brinda_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", brinda_data["rbp_adj"],
-                                         ifelse(biomarkerField == "retinol", brinda_data["sr_adj"],
-                                                ifelse(biomarkerField == "ferritin", brinda_data["sf_adj"],
-                                                       ifelse(biomarkerField == "stfr", brinda_data["stfr_adj"],
-                                                              ifelse(biomarkerField == "zinc", brinda_data["zn_adj"],
-                                                                     brinda_data[biomarkerField])
+useAdjusted <- function(survey_data, biomarkerField, brinda_biomarkers) {
+  if(biomarkerField %in%  brinda_biomarkers){
+
+  survey_data[, "original_biomarkerField"] <- survey_data[, biomarkerField]
+  survey_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", survey_data["rbp_adj"],
+                                         ifelse(biomarkerField == "retinol", survey_data["sr_adj"],
+                                                ifelse(biomarkerField == "ferritin", survey_data["sf_adj"],
+                                                       ifelse(biomarkerField == "stfr", survey_data["stfr_adj"],
+                                                              ifelse(biomarkerField == "zinc", survey_data["zn_adj"],
+                                                                     survey_data[biomarkerField])
                                                        )
                                                 )
                                          )
   )
-  return(brinda_data)
+  }
+  return(survey_data)
 }
 
-zincAdjust <- function(survey_data, biomarkerField, thresholds){
+zincCutoff <- function(survey_data, biomarkerField, thresholds){
   for (thresholdName in names(thresholds)) {
     lower <- as.numeric(thresholds[[thresholdName]]$lower)
     upper <- as.numeric(thresholds[[thresholdName]]$upper)
@@ -162,10 +170,13 @@ zincAdjust <- function(survey_data, biomarkerField, thresholds){
       }
 
     if (lower == 0) {
+      # assign deficiency thresholds
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
     } else if (length(upper) == 0) {
+      # assign excess thresholds
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE, FALSE)
     } else if (upper !=0 & lower !=0) {
+      # assign thresholds between two values
       survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
     } else {
       survey_data[[thresholdName]] <- FALSE
@@ -193,9 +204,32 @@ haemSmokeAdjust <- function(survey_data, thresholds, biomarkerField){
   return(survey_data)
 }
 
+vitaminb12Cutoff <- function(survey_data, biomarkerField, thresholds){
+  for (thresholdName in names(thresholds)) {
+    lower <- as.numeric(thresholds[[thresholdName]]$lower)
+    upper <- as.numeric(thresholds[[thresholdName]]$upper)
+    cond <- survey_data$age_in_months >= thresholds[[thresholdName]]$condition$lower_age_in_months &
+      survey_data$age_in_months < thresholds[[thresholdName]]$condition$upper_age_in_months
+
+    if (lower == 0) {
+      # assign deficiency thresholds
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+    } else if (length(upper) == 0) {
+      # assign excess thresholds
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE, FALSE)
+    } else if (upper !=0 & lower !=0) {
+      # assign thresholds between two values
+      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+    } else {
+      survey_data[[thresholdName]] <- FALSE
+    }
+  }
+  return(survey_data)
+}
+
 ageCategories <- function(survey_data){
-  id <- survey_data[,"groupId"]
-  age <-survey_data[,"ageInMonths"]
+  id <- survey_data[,"group_id"]
+  age <-survey_data[,"age_in_months"]
   y <- 12
   survey_data[,"AgeCat"] <- ifelse(id == "WRA",
                                    ifelse(age >= (15*y) & age < (20*y), 1, ifelse(age >= (20*y) & age < (50*y), 2, NA)),
@@ -237,7 +271,7 @@ calcThresholds <- function(survey_data, biomarkerField, thresholds){
 createDHS <- function(survey_data, RunSurveyWeights){
   # Create a Demographic and Health Survey (DHS)
   if (RunSurveyWeights == TRUE) {
-    DHSdesign <- survey::svydesign(id = survey_data[,"surveyCluster"], strata = survey_data[,"surveyStrata"], weights = survey_data[,"surveyWeights"] / 1000000, data = survey_data, nest = TRUE)
+    DHSdesign <- survey::svydesign(id = survey_data[,"survey_cluster"], strata = survey_data[,"survey_strata"], weights = survey_data[,"survey_weight"] / 1000000, data = survey_data, nest = TRUE)
     options("survey.lonely.psu" = "adjust")
   } else {
     DHSdesign <- survey::svydesign(ids = ~1, strata = NULL, weights = NULL, data = survey_data)
@@ -295,16 +329,16 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
 }
 
 weightedStats <- function(survey_data, biomarkerField, aggregationField,
-                           surveyCluster, surveyStrata, surveyWeights){
+                           survey_cluster, survey_strata, survey_weight){
   options("survey.lonely.psu" = "adjust")
   strat_design_srvyr <- survey_data %>%
     srvyr::rename("aggregation" = all_of(aggregationField)) %>%
     srvyr::rename("biomarker" = all_of(biomarkerField)) %>%
     srvyr::mutate(aggregation = as.factor(aggregation)) %>%
     srvyr::mutate(biomarker = as.numeric(biomarker)) %>%
-    srvyr::as_survey_design(id = surveyCluster,
-                            strata = surveyStrata,
-                            weights = surveyWeights,
+    srvyr::as_survey_design(id = survey_cluster,
+                            strata = survey_strata,
+                            weights = survey_weight,
                             nest = TRUE)
   stat <- strat_design_srvyr %>%
     srvyr::group_by(aggregation) %>%
@@ -352,44 +386,50 @@ filterOutliers <- function(survey_data, stat, biomarkerField, aggregationField){
 SummaryStats <- function(theData,
                          biomarkerField,
                          aggregationField,
-                         groupId,
+                         group_id,
                          thresholds,
                          RunSurveyWeights = TRUE,
                          Brinda = TRUE,
                          HaemAltAdjust = TRUE,
                          HaemSmokeAdjust = TRUE,
-                         ZincAdjust = TRUE, ...) {
+                         ZincCutoff = TRUE, ...) {
 
   survey_data <- preprocessData(theData, biomarkerField,
-                                aggregationField, groupId)
+                                aggregationField, group_id)
 
   survey_data <- zeroNegative(survey_data, biomarkerField)
 
-  if (Brinda == TRUE){
-  survey_data <- applyBrinda(survey_data, biomarkerField, groupId)
+  brinda_biomarkers <- c("rbp", "retinol", "ferritin",
+                         "stfr", "zinc")
 
-  survey_data <- useAdjusted(survey_data, biomarkerField)
+  if (Brinda == TRUE & biomarkerField %in% brinda_biomarkers){
+  survey_data <- applyBrinda(survey_data, biomarkerField, group_id, brinda_biomarkers)
+  survey_data <- useAdjusted(survey_data, biomarkerField, brinda_biomarkers)
   }
 
-
-  # if (biomarkerField == "zinc" && ZincAdjust == TRUE){
-  #   survey_data <- zincAdjust(survey_data, thresholds = thresholds, biomarkerField)
-  # }
-
-  # if (biomarkerField == "haemoglobin" && HaemAltAdjust == TRUE){
-  #   survey_data <- haemAltAdjust(survey_data,  thresholds = thresholds, biomarkerField)
-  # }
-
+  # Adjust cutoffs for zinc, haemoglobin and vitamin b12
+  if (biomarkerField == "zinc" & ZincCutoff == TRUE){
+    survey_data <- zincCutoff(survey_data, thresholds = thresholds, biomarkerField)
+  }
+  if (biomarkerField == "haemoglobin" && HaemAltAdjust == TRUE){
+    survey_data <- haemAltAdjust(survey_data,  thresholds = thresholds, biomarkerField)
+  }
+  if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
+    survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
+  }
   # Smoking status is not typically recorded with SAC / PSC
-  # if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
-  #   survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
-  # } else {
-  #  stop("Smoking status (is_smoker), has not been recorded")
-  # }
+  if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && !("is_smoker" %in% colnames(survey_data))){
+    stop("Smoking status (is_smoker), has not been recorded")
+  }
+  # Cut off for PSC based on age < 24 months old
+  if (biomarkerField == "vitamin_b12" && group_id == "PSC"){
+    survey_data <- vitaminb12Cutoff(survey_data, thresholds = thresholds, biomarkerField)
+  } else {
+    survey_data <- calcThresholds(survey_data, thresholds = thresholds, biomarkerField)
+  }
 
-  survey_data <- ageCategories(survey_data)
-
-  survey_data <- calcThresholds(survey_data, thresholds = thresholds, biomarkerField)
+  # No AgeCat variable in export dataset
+  # survey_data <- ageCategories(survey_data)
 
   DHSdesign <- createDHS(survey_data, RunSurveyWeights)
 
@@ -402,7 +442,7 @@ SummaryStats <- function(theData,
   # Calculate weighted survey summary statistics
 
   stat <- weightedStats(survey_data, biomarkerField, aggregationField,
-                        surveyCluster, surveyStrata, surveyWeights)
+                        survey_cluster, survey_strata, survey_weight)
 
   # Combine weighted survey summary statistics and aggregate group counts
 
