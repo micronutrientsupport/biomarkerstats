@@ -2,7 +2,7 @@ Hello this area is to test the SummaryStats function over all datafiles.
 
 If you would like to run try this locally, you can: 
 
-1) Download this Github repository 
+1) Download the Github repository 
 https://github.com/tb011/biomarkerstats/
 
     1.1) Click 'Code' (Green button) 
