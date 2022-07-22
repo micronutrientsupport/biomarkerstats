@@ -8,5 +8,6 @@ data/liveSurvey.rda
 tests/development_tests/*.rda
 tests/development_tests/*.csv
 tests/development_tests/*.txt
+!tests/development_tests/README_testing_data.txt
 tests/archive_tests
 tests/generating_test_threshold_files
