@@ -1,6 +1,8 @@
-Hello this area is to test the SummaryStats function over all datafiles. 
+Hello! 
 
-If you would like to run try this locally, you can: 
+Please navigate to tests/development_tests if you would like to test the SummaryStats function over all datafiles. 
+
+If you would like to run try this on your local computer, you can: 
 
 1) Download the Github repository 
 https://github.com/tb011/biomarkerstats/
