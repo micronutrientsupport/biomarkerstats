@@ -50,6 +50,9 @@
 #' \item{}{Sullivan, K. M., Mei, Z., Grummer-Strawn, L., & Parvanta, I. (2008).
 #' Haemoglobin adjustments to define anaemia. Tropical Medicine & International
 #' Health, 13(10), 1267-1271.}
+#' \item{}{Allen LH, Miller JW, de Groot L, Rosenberg IH, Smith AD, Refsum H,
+#' Raiten DJ. Biomarkers of Nutrition for Development (BOND): Vitamin B-12
+#' Review. J Nutr. 2018 Dec 1;148(suppl_4):1995S-2027S.}
 #' }
 #'
 #' @importFrom magrittr %>%
