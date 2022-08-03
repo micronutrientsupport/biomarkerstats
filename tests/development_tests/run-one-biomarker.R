@@ -13,9 +13,9 @@ library(dplyr)
 library(BRINDA)
 
 prefix <- "S3-"
-biomarkerField <- "zinc"
-group_id <- "MEN"
-aggregationField <- "wealth_quintile"
+biomarkerField <- "haemoglobin"
+group_id <- "WRA"
+aggregationField <- "region"
 RunSurveyWeights <- TRUE
 Brinda <- TRUE
 HaemAltAdjust <- TRUE
@@ -33,21 +33,12 @@ load(file=paste0(biomarkerField, "-", group_id, "-thresholds.rda"))
 # validation(theData = theData, biomarkerField = biomarkerField, aggregationField = aggregationField , group_id = group_id, thresholds = thresholds)
 
 # run SummaryStats function
-source("SummaryStats-export.R")
+
+## Make sure that the arguments of the function equal the same as the loaded data and thresholds
+## file
+
+source("../../R/SummaryStats.R")
 output <- SummaryStats(theData = theData,
-                       biomarkerField = biomarkerField,
-                       aggregationField = "region",
-                       group_id = "WRA",
-                       thresholds = thresholds,
-                       RunSurveyWeights = TRUE,
-                       Brinda = TRUE,
-                       HaemAltAdjust = TRUE,
-                       HaemSmokeAdjust = TRUE,
-                       ZincCutoff = TRUE)
-
- output$totalStats[,c("mean", "lowerQuartile", "upperQuartile")]
-
-withoutBRINDA <- SummaryStats(theData = theData,
                        biomarkerField = "haemoglobin",
                        aggregationField = "region",
                        group_id = "WRA",
@@ -58,18 +49,30 @@ withoutBRINDA <- SummaryStats(theData = theData,
                        HaemSmokeAdjust = TRUE,
                        ZincCutoff = TRUE)
 
-diff_brinda <- as.data.frame(all.equal(output,withoutBRINDA))
+# If one would like to compare the difference of one dataset with and without
+# without weights (please use test_SummaryStats.R to test differences
+# among all datasets)
 
+with_weights <- SummaryStats(theData = theData,
+                       biomarkerField = "haemoglobin",
+                       aggregationField = "region",
+                       group_id = "WRA",
+                       thresholds = thresholds,
+                       RunSurveyWeights = TRUE, # set to true (with weights)
+                       Brinda = TRUE,
+                       HaemAltAdjust = TRUE,
+                       HaemSmokeAdjust = TRUE,
+                       ZincCutoff = TRUE)
 
-without_weights_output <- SummaryStats(theData = theData,
+without_weights <- SummaryStats(theData = theData,
                                        biomarkerField = biomarkerField,
                                        aggregationField = aggregationField,
                                        group_id = group_id,
                                        thresholds = thresholds,
-                                       RunSurveyWeights = FALSE,
-                                       BRINDA = FALSE,
+                                       RunSurveyWeights = FALSE, #set to false
+                                       BRINDA = TRUE,
                                        HaemAltAdjust = TRUE,
                                        HaemSmokeAdjust = TRUE,
                                        ZincAdjust = TRUE)
 
-all.equal(with_weights_output, without_weights_output)
+all.equal(with_weights, without_weights)
