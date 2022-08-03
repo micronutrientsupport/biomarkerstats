@@ -2,6 +2,9 @@ Package: biomarkerstats
 Title: Calculate Summary Statistics for Biomarker Survey Data
 Version: 0.0.0.9000
 Authors@R: 
+    person(given = "Tineka",
+           family = "Blake",
+           role = c("aut"))
     person(given = "Fanny",
            family = "Sandalinas",
            role = c("aut"))
