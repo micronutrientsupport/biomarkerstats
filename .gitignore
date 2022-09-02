@@ -1,6 +1,11 @@
 .Rproj.user
 .Rhistory
 .Rdata
+.Rda
 .httr-oauth
 .DS_Store
 data/liveSurvey.rda
+tests/development_tests/*.rda
+tests/development_tests/*.csv
+tests/development_tests/*.txt
+tests/generating_test_threshold_files

@@ -2,22 +2,69 @@
 % Please edit documentation in R/summaryStats.R
 \name{SummaryStats}
 \alias{SummaryStats}
-\title{Biomarker Data}
+\alias{preprocessData}
+\title{Computes summary statistics for National Micronutrient Surveys}
 \usage{
-SummaryStats(theData, biomarkerName, groupId, thresholds)
+preprocessData(survey_data, biomarkerField, aggregationField, group_id)
 }
 \arguments{
-\item{theData}{the data}
+\item{biomarkerField}{the field name of the biomarker measurement data.
+When a zero value is observed in the biomarkerField, there is a nominal value
+of 0.001 added to the zero value in order to #' facilitate statistical
+computation (in particular Log transform in the BRINDA package)}
 
-\item{biomarkerName}{the biomarker}
+\item{aggregationField}{the field name to aggregate by}
 
-\item{groupId}{the group}
+\item{group_id}{group id of interest: WRA, PSC, SAC, MEN}
 
-\item{thresholds}{the thresholds}
+\item{theData}{Micronutrient survey data}
+
+\item{thresholds}{the biomarker threshold input to determine the level of
+deficiency or excess for an individual}
+
+\item{RunSurveyWeights}{By default this analysis takes into account
+the survey weights (must be supplied). Otherwise, set RunSurveyWeights = FALSE
+to set run the analysis without survey weights.}
+
+\item{HaemAltAdjust}{Haemoglobin will be adjusted for altitude.
+The default argument is set to TRUE, if you would not like to apply this
+adjustment set HaemAltAdjust = FALSE}
+
+\item{HaemSmokeAdjust}{Haemoglobin will be adjusted for smoking status.
+This function assumes the amount of cigarettes per day is not known
+and assesses only if the individual is a smoker or not. The default argument
+is set to TRUE, if you would not like to apply this adjustment set
+HaemSmokeAdjust = FALSE}
+
+\item{ZincCutoff}{The zinc cutoff concentrations will be based on age, sex,
+time of day and fasting status. The default argument is set to TRUE,
+if you would not like to apply this adjustment set ZincCutoff = FALSE}
 }
 \value{
 output
 }
 \description{
-Does some stuff
+Computes summary statistics for National Micronutrient Surveys
+}
+\details{
+The default threshold level for deficiency used for STFR is 8.3(mg/l)
+for all age groups. Users should confirm the threshold according to
+manufacturer's suggested values.
+}
+\references{
+\itemize{
+\item{}{Luo, H.; Addo, Y.; Jahan, A (2021) BRINDA: Computation of BRINDA
+Adjusted Micronutrient Biomarkers for Inflammation. R package version 0.1.2,
+https://github.com/hanqiluo/BRINDA}
+\item{}{International Zinc Nutrition Consultative Group
+(IZiNCG). Assessing Population Zinc Status with #' Serum Zinc Concentration.
+IZiNCG Technical Brief No. 2. 2nd ed. Davis, CA: University of California;
+2012. www.izincg.org}
+\item{}{Sullivan, K. M., Mei, Z., Grummer-Strawn, L., & Parvanta, I. (2008).
+Haemoglobin adjustments to define anaemia. Tropical Medicine & International
+Health, 13(10), 1267-1271.}
+\item{}{Allen LH, Miller JW, de Groot L, Rosenberg IH, Smith AD, Refsum H,
+Raiten DJ. Biomarkers of Nutrition for Development (BOND): Vitamin B-12
+Review. J Nutr. 2018 Dec 1;148(suppl_4):1995S-2027S.}
+}
 }
