@@ -12,7 +12,7 @@ Authors@R:
            family = "Bean",
            email = "github@micronutrient.support",
            role = c("com", "cre"))
-Description: Calculates summary statistics for biomarker micronutrient survey 
+Description: Calculates summary statistic outputs for biomarker micronutrient survey 
     data taking into account the survey design and weightings
 License: MIT + file LICENSE
 Encoding: UTF-8
