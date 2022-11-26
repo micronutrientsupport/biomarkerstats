@@ -190,6 +190,7 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
 }
 
 haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
+  survey_data[, "altitude_in_metres"] = as.numeric(survey_data[, "altitude_in_metres"])
   survey_data[, "haemoglobin"] <-
     ifelse(survey_data[,"altitude_in_metres"] >= 1000,
            survey_data[, "haemoglobin"] - (-0.032*(survey_data[,"altitude_in_metres"]*0.0032808)
