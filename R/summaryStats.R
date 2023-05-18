@@ -209,6 +209,11 @@ haemSmokeAdjust <- function(survey_data, thresholds, biomarkerField){
   return(survey_data)
 }
 
+haemNumAdjust<-function(survey_data, biomarkerField){
+  survey_data[, "haemoglobin"] = as.numeric(survey_data[, "haemoglobin"])
+  return(survey_data)
+}
+
 vitaminb12Cutoff <- function(survey_data, biomarkerField, thresholds){
   for (thresholdName in names(thresholds)) {
     lower <- as.numeric(thresholds[[thresholdName]]$lower)
@@ -283,16 +288,20 @@ createDHS <- function(survey_data, RunSurveyWeights){
   }
   return(DHSdesign)
 }
-
 summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
   # compute statistics for DHS
+
+  minimum=min(survey_data[, biomarkerField])
+  maximum=max(survey_data[, biomarkerField])
+  NaS=sum(is.na(survey_data[, biomarkerField]))
+
   mean <- survey::svymean( ~ survey_data[, biomarkerField], DHSdesign, ci = FALSE)
   quantiles <- survey::oldsvyquantile( ~ survey_data[, biomarkerField],
                                        DHSdesign, c(.25, .5, .75),
                                        ci = FALSE)
-  sd <- jtools::svysd( ~ survey_data[, biomarkerField], DHSdesign)
+  sd <- jtools::svysd(~ survey_data[, biomarkerField], DHSdesign)
   n <- nrow(survey_data)
-  summary <- as.data.frame(cbind(mean, quantiles, sd, n))
+  summary <- as.data.frame(cbind(mean,minimum,maximum,quantiles, sd, n, NaS))
   summary <- srvyr::rename(
     summary,
     lowerQuartile = "0.25",
@@ -310,11 +319,14 @@ summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
       mean,
       median,
       standardDeviation,
+      minimum,
+      maximum,
       lowerQuartile,
       upperQuartile,
       upperOutlier,
       lowerOutlier,
-      n
+      n,
+      NaS
     )
   rownames(summary) <- NULL
   return(summary)
@@ -369,7 +381,7 @@ combinedStats <- function(survey_data, biomarkerField, aggregationField, stat){
   basicsummary <- psych::describeBy(get(biomarkerField, survey_data),
                                     get(aggregationField, survey_data),
                                     mat = TRUE, digits = 2) %>% srvyr::select(group1, n)
-  combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"))
+  combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"), multiple = "all")
   combined <- dplyr::select(combined,aggregation, mean,
                             median, standardDeviation,
                             lowerQuartile, upperQuartile,
@@ -379,7 +391,7 @@ combinedStats <- function(survey_data, biomarkerField, aggregationField, stat){
 }
 
 filterOutliers <- function(survey_data, stat, biomarkerField, aggregationField){
-  data_with_stats <- dplyr::left_join(stat, survey_data, by = c("aggregation" = aggregationField))
+  data_with_stats <- dplyr::left_join(stat, survey_data, by = c("aggregation" = aggregationField), multiple = "all")
   outliers <- data_with_stats %>%
     srvyr::rename("measurement" = all_of(biomarkerField)) %>%
     srvyr::filter(measurement < lowerOutlier | measurement > upperOutlier) %>%
