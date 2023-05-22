@@ -167,9 +167,9 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
     cond <- survey_data$time_of_day_sampled == thresholds[[thresholdName]]$condition$time_of_day_sampled &
       survey_data$was_fasting == thresholds[[thresholdName]]$condition$was_fasting &
       survey_data$sex == thresholds[[thresholdName]]$condition$sex &
-      if (thresholds[[thresholdName]]$condition$age_less_greater == "<"){
+      if (thresholds[[thresholdName]]$condition$age_less_greater == "<"){ # less
         survey_data$age_in_months < thresholds[[thresholdName]]$condition$age_in_months
-      } else if (thresholds[[thresholdName]]$condition$age_less_greater == ">="){
+      } else if (thresholds[[thresholdName]]$condition$age_less_greater == ">="){ # greater or equal
         survey_data$age_in_months >= thresholds[[thresholdName]]$condition$age_in_months
       }
 
@@ -200,9 +200,9 @@ haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
   return(survey_data)
 }
 
-haemSmokeAdjust <- function(survey_data, thresholds, biomarkerField){
+haemSmokeAdjust <- function(survey_data, thresholds,group_id, biomarkerField){
   survey_data[, "haemoglobin"] <-
-    ifelse(survey_data[,"is_smoker"] == TRUE,
+    ifelse(survey_data[,"group_id"] == "MEN"|survey_data[,"group_id"] == "WRA" & survey_data[,"is_smoker"] == TRUE,
            survey_data[,"haemoglobin"] - 0.3,
            survey_data[,"haemoglobin"]
     )
