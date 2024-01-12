@@ -482,7 +482,7 @@ SummaryStats <- function(theData,
     "aggregatedThresholds" = thresh,
     "binnedValues" = list(
       "binLabel" = histogramLabels, #Remove first element
-      "binData" = histogram[2],
+      "binData" = histogram[2]$counts,
       "binSize" = unlist(histogram[1])[2] - unlist(histogram[1])[1]
     )
   )
