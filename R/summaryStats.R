@@ -469,12 +469,22 @@ SummaryStats <- function(theData,
 
   outliers <- filterOutliers(survey_data, stat, biomarkerField, aggregationField)
 
+  # Create histogram data for the dataset
+
+  histogram <- hist(survey_data[, biomarkerField], plot=FALSE)
+  histogramLabels <- unlist(histogram[1])[c(2:length(unlist(histogram[1])))] #Remove first element
+
   # Output all results
   output <- list(
     "totalStats" = summary,
     "aggregatedStats" = combined,
     "aggregatedOutliers" = outliers,
-    "aggregatedThresholds" = thresh
+    "aggregatedThresholds" = thresh,
+    "binnedValues" = list(
+      "binLabel" = histogramLabels, #Remove first element
+      "binData" = histogram[2],
+      "binSize" = unlist(histogram[1])[2] - unlist(histogram[1])[1]
+    )
   )
   return(output)
 }
