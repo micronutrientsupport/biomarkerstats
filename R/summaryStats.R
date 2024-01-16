@@ -454,8 +454,13 @@ SummaryStats <- function(theData,
 
   # Calculate deficiency percentages for all threshold levels
 
-  thresh <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+  thresh_agg <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
 
+  # Calculate equivalent deficiency percentages for whole un-aggregated dataset
+  # using new 'total' column
+  survey_data$total <- 'total'
+  thresh_total <-calcDeficiency(survey_data, thresholds, 'total', DHSdesign)
+  
   # Calculate weighted survey summary statistics
 
   stat <- weightedStats(survey_data, biomarkerField, aggregationField,
@@ -472,16 +477,17 @@ SummaryStats <- function(theData,
   # Create histogram data for the dataset
 
   histogram <- hist(survey_data[, biomarkerField], plot=FALSE)
-  histogramLabels <- unlist(histogram[1])[c(2:length(unlist(histogram[1])))] #Remove first element
+  histogram_labels <- unlist(histogram[1])[c(2:length(unlist(histogram[1])))] #Remove first element
 
   # Output all results
   output <- list(
     "totalStats" = summary,
+    "totalThresholds" = thresh_total,
     "aggregatedStats" = combined,
     "aggregatedOutliers" = outliers,
-    "aggregatedThresholds" = thresh,
+    "aggregatedThresholds" = thresh_agg,
     "binnedValues" = list(
-      "binLabel" = histogramLabels, #Remove first element
+      "binLabel" = histogram_labels, #Remove first element
       "binData" = histogram[2]$counts,
       "binSize" = unlist(histogram[1])[2] - unlist(histogram[1])[1]
     )
