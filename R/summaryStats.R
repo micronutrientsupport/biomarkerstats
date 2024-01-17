@@ -483,8 +483,8 @@ SummaryStats <- function(theData,
   for (agg in outliers_split) {
     aggregation_field <- sapply(agg[2],"[[",1)
     aggregation_outlier_array <- array(unlist(agg[1]))
-    listtmp = list(measurement=aggregation_outlier_array)
-    outliers_formatted[[aggregation_field]] = listtmp
+    listtmp = list(aggregation=aggregation_field, measurement=aggregation_outlier_array)
+    outliers_formatted <- append(outliers_formatted, listtmp)
   }
   
   # Create histogram data for the dataset
