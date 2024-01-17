@@ -497,8 +497,7 @@ SummaryStats <- function(theData,
     "totalStats" = summary,
     "totalThresholds" = thresh_total,
     "aggregatedStats" = combined,
-    "aggregatedOutliers" = outliers,
-    "testOutlierGroup" = outliers_formatted,
+    "aggregatedOutliers" = outliers_formatted,
     "aggregatedThresholds" = thresh_agg,
     "binnedValues" = list(
       "binLabel" = histogram_labels, #Remove first element
