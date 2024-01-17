@@ -479,6 +479,13 @@ SummaryStats <- function(theData,
   outliers <- filterOutliers(survey_data, stat, biomarkerField, aggregationField)
   outliers_grouped <- outliers %>% group_by(aggregation)
   outliers_split <- group_split(outliers_grouped)
+  mylist <- list()
+  for (agg in outliers_split) {
+    aggregation_field <- sapply(agg[2],"[[",1)
+    aggregation_outlier_array <- array(unlist(agg[1]))
+    listtmp = list(aggregation_field, aggregation_outlier_array)
+    mylist <- append(mylist, list(listtmp))
+  }
   
   # Create histogram data for the dataset
 
@@ -491,7 +498,7 @@ SummaryStats <- function(theData,
     "totalThresholds" = thresh_total,
     "aggregatedStats" = combined,
     "aggregatedOutliers" = outliers,
-    "testOutlierGroup" = outliers_split,
+    "testOutlierGroup" = mylist,
     "aggregatedThresholds" = thresh_agg,
     "binnedValues" = list(
       "binLabel" = histogram_labels, #Remove first element
