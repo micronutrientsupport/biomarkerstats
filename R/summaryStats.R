@@ -478,7 +478,7 @@ SummaryStats <- function(theData,
 
   outliers <- filterOutliers(survey_data, stat, biomarkerField, aggregationField)
   outliers_grouped <- outliers %>% group_by(aggregation)
-  outlier_split <- group_split(outliers_grouped)
+  outliers_split <- group_split(outliers_grouped)
   
   # Create histogram data for the dataset
 
