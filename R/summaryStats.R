@@ -80,7 +80,7 @@ preprocessData <- function(survey_data, biomarkerField,
   for(i in seq(biomarkers)){
     if (biomarkers[i] %in% names(survey_data)){
       survey_data[, biomarkers[i]] <- as.numeric(survey_data
-                                             [, biomarkers[i]])
+                                                 [, biomarkers[i]])
     }
   }
   survey_data[, aggregationField] <- as.character(survey_data[, aggregationField])
@@ -145,17 +145,17 @@ applyBrinda <- function(survey_data, biomarkerField, group_id, brinda_biomarkers
 useAdjusted <- function(survey_data, biomarkerField, brinda_biomarkers) {
   if(biomarkerField %in%  brinda_biomarkers){
 
-  survey_data[, "original_biomarkerField"] <- survey_data[, biomarkerField]
-  survey_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", survey_data["rbp_adj"],
-                                         ifelse(biomarkerField == "retinol", survey_data["sr_adj"],
-                                                ifelse(biomarkerField == "ferritin", survey_data["sf_adj"],
-                                                       ifelse(biomarkerField == "stfr", survey_data["stfr_adj"],
-                                                              ifelse(biomarkerField == "zinc", survey_data["zn_adj"],
-                                                                     survey_data[biomarkerField])
-                                                       )
-                                                )
-                                         )
-  )
+    survey_data[, "original_biomarkerField"] <- survey_data[, biomarkerField]
+    survey_data[, biomarkerField]<- ifelse(biomarkerField == "rbp", survey_data["rbp_adj"],
+                                           ifelse(biomarkerField == "retinol", survey_data["sr_adj"],
+                                                  ifelse(biomarkerField == "ferritin", survey_data["sf_adj"],
+                                                         ifelse(biomarkerField == "stfr", survey_data["stfr_adj"],
+                                                                ifelse(biomarkerField == "zinc", survey_data["zn_adj"],
+                                                                       survey_data[biomarkerField])
+                                                         )
+                                                  )
+                                           )
+    )
   }
   return(survey_data)
 }
@@ -346,7 +346,7 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
 }
 
 weightedStats <- function(survey_data, biomarkerField, aggregationField,
-                           survey_cluster, survey_strata, survey_weight){
+                          survey_cluster, survey_strata, survey_weight){
   options("survey.lonely.psu" = "adjust")
   strat_design_srvyr <- survey_data %>%
     srvyr::rename("aggregation" = all_of(aggregationField)) %>%
@@ -360,6 +360,9 @@ weightedStats <- function(survey_data, biomarkerField, aggregationField,
   stat <- strat_design_srvyr %>%
     srvyr::group_by(aggregation) %>%
     srvyr::summarise(
+      minimum=min(biomarker),
+      maximum=max(biomarker),
+      NaS=sum(is.na(biomarker)),
       mean = srvyr::survey_mean(biomarker),
       standardDeviation = srvyr::survey_sd(biomarker),
       Q = srvyr::survey_quantile(biomarker, c(0.25, 0.5, 0.75)),
@@ -383,9 +386,10 @@ combinedStats <- function(survey_data, biomarkerField, aggregationField, stat){
                                     mat = TRUE, digits = 2) %>% srvyr::select(group1, n)
   combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"), multiple = "all")
   combined <- dplyr::select(combined,aggregation, mean,
+                            minimum, maximum,
                             median, standardDeviation,
                             lowerQuartile, upperQuartile,
-                            upperOutlier, lowerOutlier, n)
+                            upperOutlier, lowerOutlier, n, NaS)
   rownames(combined) <- NULL
   return(combined)
 }
@@ -420,8 +424,8 @@ SummaryStats <- function(theData,
                          "stfr", "zinc")
 
   if (Brinda == TRUE & biomarkerField %in% brinda_biomarkers){
-  survey_data <- applyBrinda(survey_data, biomarkerField, group_id, brinda_biomarkers)
-  survey_data <- useAdjusted(survey_data, biomarkerField, brinda_biomarkers)
+    survey_data <- applyBrinda(survey_data, biomarkerField, group_id, brinda_biomarkers)
+    survey_data <- useAdjusted(survey_data, biomarkerField, brinda_biomarkers)
   }
 
   # Adjust cutoffs for zinc, haemoglobin and vitamin b12
@@ -460,7 +464,7 @@ SummaryStats <- function(theData,
   # using new 'total' column
   survey_data$total <- 'total'
   thresh_total <-calcDeficiency(survey_data, thresholds, 'total', DHSdesign)
-  
+
   # Calculate weighted survey summary statistics
 
   stat <- weightedStats(survey_data, biomarkerField, aggregationField,
@@ -494,4 +498,3 @@ SummaryStats <- function(theData,
   )
   return(output)
 }
-
