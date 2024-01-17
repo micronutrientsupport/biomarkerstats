@@ -483,7 +483,7 @@ SummaryStats <- function(theData,
   for (agg in outliers_split) {
     aggregation_field <- sapply(agg[2],"[[",1)
     aggregation_outlier_array <- array(unlist(agg[1]))
-    listtmp = list(aggregation=aggregation_field, measurement=aggregation_outlier_array)
+    listtmp = list(list(aggregation=aggregation_field, measurement=aggregation_outlier_array))
     outliers_formatted <- append(outliers_formatted, listtmp)
   }
   
