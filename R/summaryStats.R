@@ -420,10 +420,6 @@ SummaryStats <- function(theData,
   if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
     survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
   }
-  # Smoking status is not typically recorded with SAC / PSC
- # if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && !("is_smoker" %in% colnames(survey_data))){
-  #  stop("Smoking status (is_smoker), has not been recorded")
-  #}
   # Cut off for PSC based on age < 24 months old
   if (biomarkerField == "vitamin_b12" && group_id == "PSC"){
     survey_data <- vitaminb12Cutoff(survey_data, thresholds = thresholds, biomarkerField)
