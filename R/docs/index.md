@@ -6,7 +6,7 @@ Preface
 About this manual
 This manual is designed for anyone involved in the analysis of micronutrient biomarkers datasets. The methods were developed by the Micronutrient Action Policy Support (MAPS) project and made available to all for use, without warranty or liability. The MAPS project is funded by the Bill and Melinda Gates Foundation.
 
-Acknowledgements
+Acknowledgements:
 Fanny Sandalinas, Tineka Blake, Chris Chagumaira, Andy Bean, Edward Joy, Louise Ander
 
 Who is this manual for 
