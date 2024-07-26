@@ -337,7 +337,7 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
   for (thresholdName in names(thresholds)) {
     thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "survey_data[, aggregationField]"] <- "aggregation"
-    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
+    # names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
     rownames(thresh[[thresholdName]]) <- NULL
