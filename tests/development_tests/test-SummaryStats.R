@@ -55,7 +55,7 @@ aggregateGroup <- c("wealth_quintile", "region", "urbanity")
 
 # run function over all files in current directory
 new_results <- lapply(aggregateGroup,
-                      script =  "../../R/summaryStats.R",
+                      script = "../../R/summaryStats.R",
                       prefix = "S2-|S3-",
                       testAll)
 
@@ -78,7 +78,7 @@ new_errors_urbanity <- errorFind(new_results[[3]])
 # Run a different version of the script with all "S2 & S3" files
 
 old_results <- lapply(aggregateGroup,
-                      script = , # link to old script version
+                      script = # link to old script version
                       prefix = "S2-|S3-",
                       testAll)
 

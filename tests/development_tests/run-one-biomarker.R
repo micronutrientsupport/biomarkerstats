@@ -12,9 +12,9 @@ library(survey)
 library(dplyr)
 library(BRINDA)
 
-prefix <- "S3-"
+prefix <- "S2-"
 biomarkerField <- "haemoglobin"
-group_id <- "SAC"
+group_id <- "WRA"
 aggregationField <- "region"
 RunSurveyWeights <- TRUE
 Brinda <- TRUE
@@ -37,7 +37,7 @@ load(file=paste0(biomarkerField, "-", group_id, "-thresholds.rda"))
 ## Make sure that the arguments of the function equal the same as the loaded data and thresholds
 ## file
 
-source("../../R/SummaryStats.R")
+source("../../R/summaryStats.R")
 output <- SummaryStats(theData = theData,
                        biomarkerField = biomarkerField,
                        aggregationField = aggregationField,
