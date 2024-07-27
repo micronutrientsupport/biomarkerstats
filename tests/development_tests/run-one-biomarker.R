@@ -14,7 +14,7 @@ library(BRINDA)
 
 prefix <- "S2-"
 biomarkerField <- "haemoglobin"
-group_id <- "WRA"
+group_id <- "MEN"
 aggregationField <- "region"
 RunSurveyWeights <- TRUE
 Brinda <- TRUE

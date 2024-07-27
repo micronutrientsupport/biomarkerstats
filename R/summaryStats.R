@@ -63,6 +63,7 @@
 #'
 #' @export
 
+
 # Function definitions (as used in main function)
 
 preprocessData <- function(survey_data, biomarkerField,
@@ -189,6 +190,7 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
 }
 
 haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
+  survey_data[, "altitude_in_metres"] <- as.numeric(survey_data[, "altitude_in_metres"])
   survey_data[, "haemoglobin"] <-
     ifelse(survey_data[,"altitude_in_metres"] >= 1000,
            survey_data[, "haemoglobin"] - (-0.032*(survey_data[,"altitude_in_metres"]*0.0032808)
@@ -281,16 +283,19 @@ createDHS <- function(survey_data, RunSurveyWeights){
   }
   return(DHSdesign)
 }
-
 summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
   # compute statistics for DHS
+
+  minimum <- min(survey_data[, biomarkerField])
+  maximum <- max(survey_data[, biomarkerField])
+  NaS <- sum(is.na(survey_data[, biomarkerField]))
   mean <- survey::svymean( ~ survey_data[, biomarkerField], DHSdesign, ci = FALSE)
   quantiles <- survey::oldsvyquantile( ~ survey_data[, biomarkerField],
                                        DHSdesign, c(.25, .5, .75),
                                        ci = FALSE)
-  sd <- jtools::svysd( ~ survey_data[, biomarkerField], DHSdesign)
+  sd <- jtools::svysd(~ survey_data[, biomarkerField], DHSdesign)
   n <- nrow(survey_data)
-  summary <- as.data.frame(cbind(mean, quantiles, sd, n))
+  summary <- as.data.frame(cbind(mean, minimum, maximum, quantiles, sd, n, NaS))
   summary <- srvyr::rename(
     summary,
     lowerQuartile = "0.25",
@@ -308,11 +313,14 @@ summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
       mean,
       median,
       standardDeviation,
+      minimum,
+      maximum,
       lowerQuartile,
       upperQuartile,
       upperOutlier,
       lowerOutlier,
-      n
+      n,
+      NaS
     )
   rownames(summary) <- NULL
   return(summary)
@@ -323,7 +331,7 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
   for (thresholdName in names(thresholds)) {
     thresh[[thresholdName]] <- survey::svyby(as.formula(paste("~", thresholdName)), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "survey_data[, aggregationField]"] <- "aggregation"
-    names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
+    # names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "deficiency"] <- "percentage"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_l"] <- "confidenceIntervalLower"
     names(thresh[[thresholdName]])[names(thresh[[thresholdName]]) == "ci_u"] <- "confidenceIntervalUpper"
     rownames(thresh[[thresholdName]]) <- NULL
@@ -346,6 +354,9 @@ weightedStats <- function(survey_data, biomarkerField, aggregationField,
   stat <- strat_design_srvyr %>%
     srvyr::group_by(aggregation) %>%
     srvyr::summarise(
+      minimum=min(biomarker),
+      maximum=max(biomarker),
+      NaS=sum(is.na(biomarker)),
       mean = srvyr::survey_mean(biomarker),
       standardDeviation = srvyr::survey_sd(biomarker),
       Q = srvyr::survey_quantile(biomarker, c(0.25, 0.5, 0.75)),
@@ -367,17 +378,18 @@ combinedStats <- function(survey_data, biomarkerField, aggregationField, stat){
   basicsummary <- psych::describeBy(get(biomarkerField, survey_data),
                                     get(aggregationField, survey_data),
                                     mat = TRUE, digits = 2) %>% srvyr::select(group1, n)
-  combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"))
+  combined <- dplyr::left_join(stat, basicsummary, by = c("aggregation" = "group1"), multiple = "all")
   combined <- dplyr::select(combined,aggregation, mean,
+                            minimum, maximum,
                             median, standardDeviation,
                             lowerQuartile, upperQuartile,
-                            upperOutlier, lowerOutlier, n)
+                            upperOutlier, lowerOutlier, n, NaS)
   rownames(combined) <- NULL
   return(combined)
 }
 
 filterOutliers <- function(survey_data, stat, biomarkerField, aggregationField){
-  data_with_stats <- dplyr::left_join(stat, survey_data, by = c("aggregation" = aggregationField))
+  data_with_stats <- dplyr::left_join(stat, survey_data, by = c("aggregation" = aggregationField), multiple = "all")
   outliers <- data_with_stats %>%
     srvyr::rename("measurement" = all_of(biomarkerField)) %>%
     srvyr::filter(measurement < lowerOutlier | measurement > upperOutlier) %>%
@@ -436,7 +448,12 @@ SummaryStats <- function(theData,
 
   # Calculate deficiency percentages for all threshold levels
 
-  thresh <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+  thresh_agg <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+
+  # Calculate equivalent deficiency percentages for whole un-aggregated dataset
+  # using new 'total' column
+  survey_data$total <- 'total'
+  thresh_total <-calcDeficiency(survey_data, thresholds, 'total', DHSdesign)
 
   # Calculate weighted survey summary statistics
 
@@ -450,13 +467,33 @@ SummaryStats <- function(theData,
   # Filter out upper and lower outliers
 
   outliers <- filterOutliers(survey_data, stat, biomarkerField, aggregationField)
+  outliers_grouped <- outliers %>% group_by(aggregation)
+  outliers_split <- group_split(outliers_grouped)
+  outliers_formatted <- list()
+  for (agg in outliers_split) {
+    aggregation_field <- sapply(agg[2],"[[",1)
+    aggregation_outlier_array <- array(unlist(agg[1]))
+    listtmp <- list(list(aggregation=aggregation_field, measurement=aggregation_outlier_array))
+    outliers_formatted <- append(outliers_formatted, listtmp)
+  }
+
+  # Create histogram data for the dataset
+
+  histogram <- hist(survey_data[, biomarkerField], plot=FALSE)
+  histogram_labels <- unlist(histogram[1])[c(2:length(unlist(histogram[1])))] #Remove first element
 
   # Output all results
   output <- list(
     "totalStats" = summary,
+    "totalThresholds" = thresh_total,
     "aggregatedStats" = combined,
-    "aggregatedOutliers" = outliers,
-    "aggregatedThresholds" = thresh
+    "aggregatedOutliers" = outliers_formatted,
+    "aggregatedThresholds" = thresh_agg,
+    "binnedValues" = list(
+      "binLabel" = histogram_labels, #Remove first element
+      "binData" = histogram[2]$counts,
+      "binSize" = unlist(histogram[1])[2] - unlist(histogram[1])[1]
+    )
   )
   return(output)
 }
