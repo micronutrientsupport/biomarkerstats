@@ -202,7 +202,7 @@ haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
 
 haemSmokeAdjust <- function(survey_data, thresholds,group_id, biomarkerField){
   survey_data[, "haemoglobin"] <-
-    ifelse(survey_data[,"group_id"] == "MEN"|survey_data[,"group_id"] == "WRA" & survey_data[,"is_smoker"] == TRUE,
+    ifelse(survey_data[,"is_smoker"] %in% TRUE,
            survey_data[,"haemoglobin"] - 0.3,
            survey_data[,"haemoglobin"]
     )
@@ -288,20 +288,19 @@ createDHS <- function(survey_data, RunSurveyWeights){
   }
   return(DHSdesign)
 }
+
 summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
   # compute statistics for DHS
-
-  minimum=min(survey_data[, biomarkerField])
-  maximum=max(survey_data[, biomarkerField])
-  NaS=sum(is.na(survey_data[, biomarkerField]))
-
+  minimum <- min(survey_data[, biomarkerField])
+  maximum <- max(survey_data[, biomarkerField])
+  NaS <- sum(is.na(survey_data[, biomarkerField]))
   mean <- survey::svymean( ~ survey_data[, biomarkerField], DHSdesign, ci = FALSE)
   quantiles <- survey::oldsvyquantile( ~ survey_data[, biomarkerField],
                                        DHSdesign, c(.25, .5, .75),
                                        ci = FALSE)
   sd <- jtools::svysd(~ survey_data[, biomarkerField], DHSdesign)
   n <- nrow(survey_data)
-  summary <- as.data.frame(cbind(mean,minimum,maximum,quantiles, sd, n, NaS))
+  summary <- as.data.frame(cbind(mean, minimum, maximum, quantiles, sd, n, NaS))
   summary <- srvyr::rename(
     summary,
     lowerQuartile = "0.25",
@@ -438,10 +437,6 @@ SummaryStats <- function(theData,
   if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
     survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
   }
-  # Smoking status is not typically recorded with SAC / PSC
-  if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && !("is_smoker" %in% colnames(survey_data))){
-    stop("Smoking status (is_smoker), has not been recorded")
-  }
   # Cut off for PSC based on age < 24 months old
   if (biomarkerField == "vitamin_b12" && group_id == "PSC"){
     survey_data <- vitaminb12Cutoff(survey_data, thresholds = thresholds, biomarkerField)
@@ -483,10 +478,10 @@ SummaryStats <- function(theData,
   for (agg in outliers_split) {
     aggregation_field <- sapply(agg[2],"[[",1)
     aggregation_outlier_array <- array(unlist(agg[1]))
-    listtmp = list(list(aggregation=aggregation_field, measurement=aggregation_outlier_array))
+    listtmp <- list(list(aggregation=aggregation_field, measurement=aggregation_outlier_array))
     outliers_formatted <- append(outliers_formatted, listtmp)
   }
-  
+
   # Create histogram data for the dataset
 
   histogram <- hist(survey_data[, biomarkerField], plot=FALSE)

@@ -55,7 +55,7 @@ aggregateGroup <- c("wealth_quintile", "region", "urbanity")
 
 # run function over all files in current directory
 new_results <- lapply(aggregateGroup,
-                      script =  "../../R/summaryStats.R",
+                      script = "../../R/summaryStats.R",
                       prefix = "S2-|S3-",
                       testAll)
 
@@ -78,15 +78,15 @@ new_errors_urbanity <- errorFind(new_results[[3]])
 # Run a different version of the script with all "S2 & S3" files
 
 old_results <- lapply(aggregateGroup,
-                      script = , # link to old script version
+                      script = "../../R/old_summaryStats.R"    ,# link to old script version
                       prefix = "S2-|S3-",
                       testAll)
 
 #  Find errors in all aggregate group tests
 
-old_errors_wQ <- errorFind(old_results[[1]])
-old_errors_rN <- errorFind(old_results[[2]])
-old_errors_uR <- errorFind(old_results[[3]])
+old_errors_wealth_quintile <- errorFind(old_results[[1]])
+old_errors_region <- errorFind(old_results[[2]])
+old_errors_urbanity <- errorFind(old_results[[3]])
 
 # # Compare differences between results
  diff <- as.data.frame(all.equal(new_results, old_results))
