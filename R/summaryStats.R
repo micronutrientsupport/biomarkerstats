@@ -167,9 +167,9 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
     cond <- survey_data$time_of_day_sampled == thresholds[[thresholdName]]$condition$time_of_day_sampled &
       survey_data$was_fasting == thresholds[[thresholdName]]$condition$was_fasting &
       survey_data$sex == thresholds[[thresholdName]]$condition$sex &
-      if (thresholds[[thresholdName]]$condition$age_less_greater == "<"){
+      if (thresholds[[thresholdName]]$condition$age_less_greater == "<"){ # less
         survey_data$age_in_months < thresholds[[thresholdName]]$condition$age_in_months
-      } else if (thresholds[[thresholdName]]$condition$age_less_greater == ">="){
+      } else if (thresholds[[thresholdName]]$condition$age_less_greater == ">="){ # greater or equal
         survey_data$age_in_months >= thresholds[[thresholdName]]$condition$age_in_months
       }
 
@@ -190,6 +190,7 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
 }
 
 haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
+  survey_data[, "altitude_in_metres"] = as.numeric(survey_data[, "altitude_in_metres"])
   survey_data[, "haemoglobin"] <-
     ifelse(survey_data[,"altitude_in_metres"] >= 1000,
            survey_data[, "haemoglobin"] - (-0.032*(survey_data[,"altitude_in_metres"]*0.0032808)
@@ -199,12 +200,17 @@ haemAltAdjust <- function(survey_data, thresholds, biomarkerField){
   return(survey_data)
 }
 
-haemSmokeAdjust <- function(survey_data, thresholds, biomarkerField){
+haemSmokeAdjust <- function(survey_data, thresholds,group_id, biomarkerField){
   survey_data[, "haemoglobin"] <-
     ifelse(survey_data[,"is_smoker"] %in% TRUE,
            survey_data[,"haemoglobin"] - 0.3,
            survey_data[,"haemoglobin"]
     )
+  return(survey_data)
+}
+
+haemNumAdjust<-function(survey_data, biomarkerField){
+  survey_data[, "haemoglobin"] = as.numeric(survey_data[, "haemoglobin"])
   return(survey_data)
 }
 
@@ -282,9 +288,9 @@ createDHS <- function(survey_data, RunSurveyWeights){
   }
   return(DHSdesign)
 }
+
 summaryDHS <- function(survey_data, DHSdesign, biomarkerField) {
   # compute statistics for DHS
-
   minimum <- min(survey_data[, biomarkerField])
   maximum <- max(survey_data[, biomarkerField])
   NaS <- sum(is.na(survey_data[, biomarkerField]))
