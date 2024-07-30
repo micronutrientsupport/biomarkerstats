@@ -72,6 +72,7 @@ preprocessData <- function(survey_data, biomarkerField,
   survey_data[,"survey_strata"][is.na(survey_data[, "survey_strata"])] <- 0
   survey_data[,"survey_strata"] <- as.numeric(survey_data[,"survey_strata"])
   survey_data[,"survey_weight"] <- as.numeric(survey_data[,"survey_weight"])
+  survey_data[,"altitude_in_metres"] <- as.numeric(survey_data[,"altitude_in_metres"])
   survey_data[, biomarkerField] <- as.numeric(survey_data[, biomarkerField])
   biomarkers <- c("agp", "crp", "ferritin",
                   "haemoglobin", "iodine", "ps_folate",
