@@ -183,15 +183,15 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
 
     if (lower == 0) {
       # assign deficiency thresholds
-      survey_data$zinc_deficiency <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
     } else if (length(upper) == 0) {
       # assign excess thresholds
-      survey_data$zinc_deficiency <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE , FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE , FALSE)
     } else if (upper !=0 & lower !=0) {
       # assign thresholds between two values
-      survey_data$zinc_deficiency <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
     } else {
-      survey_data$zinc_deficiency <- NA
+      survey_data$deficiency <- NA
     }
   }
   return(survey_data)
@@ -348,11 +348,11 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
 
 zincCalcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign) {
   thresh <- list()
-    thresh[["zinc_deficiency"]] <- survey::svyby(as.formula(paste("~", "zinc_deficiency")), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
-    names(thresh[["zinc_deficiency"]])[names(thresh[["zinc_deficiency"]]) == "survey_data[, aggregationField]"] <- "aggregation"
-    names(thresh[["zinc_deficiency"]])[names(thresh[["zinc_deficiency"]]) == "ci_l"] <- "confidenceIntervalLower"
-    names(thresh[["zinc_deficiency"]])[names(thresh[["zinc_deficiency"]]) == "ci_u"] <- "confidenceIntervalUpper"
-    rownames(thresh[["zinc_deficiency"]]) <- NULL
+    thresh[["deficiency"]] <- survey::svyby(as.formula(paste("~", "deficiency")), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "survey_data[, aggregationField]"] <- "aggregation"
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_l"] <- "confidenceIntervalLower"
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_u"] <- "confidenceIntervalUpper"
+    rownames(thresh[["deficiency"]]) <- NULL
   return(thresh)
 }
 
@@ -461,9 +461,6 @@ SummaryStats <- function(theData,
   summary <- summaryDHS(survey_data, DHSdesign, biomarkerField)
 
   # Calculate deficiency percentages for all threshold levels
-
-  thresh_agg <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
-
 
   if (biomarkerField == "zinc" & ZincCutoff == TRUE){
     thresh_agg <- zincCalcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
