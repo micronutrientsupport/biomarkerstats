@@ -174,17 +174,25 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
         survey_data$age_in_months >= thresholds[[thresholdName]]$condition$age_in_months
       }
 
+
+    # test to make sure that a person only belongs to one zinc deficiency category
+     survey_data[[thresholdName]] <- cond
+    # threshold_cats <- survey_data [,names(thresholds)]
+    # check_thresholds <- apply(threshold_cats, 1, sum)
+    # tab <- table(check_thresholds > 1, useNA = "always")
+    # if (tab["FALSE"] != nrow(survey_data)) stop("individual does not correctly belong to zinc deficiency category")
+
     if (lower == 0) {
       # assign deficiency thresholds
-      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
     } else if (length(upper) == 0) {
       # assign excess thresholds
-      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE, FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] > lower & cond , TRUE , FALSE)
     } else if (upper !=0 & lower !=0) {
       # assign thresholds between two values
-      survey_data[[thresholdName]] <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE, FALSE)
+      survey_data$deficiency <- ifelse(survey_data[, biomarkerField] > lower & survey_data[, biomarkerField] <= upper & cond , TRUE , FALSE)
     } else {
-      survey_data[[thresholdName]] <- FALSE
+      survey_data$deficiency <- NA
     }
   }
   return(survey_data)
@@ -339,6 +347,16 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
   return(thresh)
 }
 
+zincCalcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign) {
+  thresh <- list()
+    thresh[["deficiency"]] <- survey::svyby(as.formula(paste("~", "deficiency")), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "survey_data[, aggregationField]"] <- "aggregation"
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_l"] <- "confidenceIntervalLower"
+    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_u"] <- "confidenceIntervalUpper"
+    rownames(thresh[["deficiency"]]) <- NULL
+  return(thresh)
+}
+
 weightedStats <- function(survey_data, biomarkerField, aggregationField,
                           survey_cluster, survey_strata, survey_weight){
   options("survey.lonely.psu" = "adjust")
@@ -423,17 +441,14 @@ SummaryStats <- function(theData,
   }
 
   # Adjust cutoffs for zinc, haemoglobin and vitamin b12
+  # Cut off for vitamin  B12, PSC based on age < 24 months old
   if (biomarkerField == "zinc" & ZincCutoff == TRUE){
     survey_data <- zincCutoff(survey_data, thresholds = thresholds, biomarkerField)
-  }
-  if (biomarkerField == "haemoglobin" && HaemAltAdjust == TRUE){
+  } else  if (biomarkerField == "haemoglobin" && HaemAltAdjust == TRUE){
     survey_data <- haemAltAdjust(survey_data,  thresholds = thresholds, biomarkerField)
-  }
-  if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
+  } else if (biomarkerField == "haemoglobin" && HaemSmokeAdjust == TRUE && "is_smoker" %in% colnames(survey_data)){
     survey_data <- haemSmokeAdjust(survey_data, thresholds = thresholds,  biomarkerField)
-  }
-  # Cut off for PSC based on age < 24 months old
-  if (biomarkerField == "vitamin_b12" && group_id == "PSC"){
+  } else  if (biomarkerField == "vitamin_b12" && group_id == "PSC"){
     survey_data <- vitaminb12Cutoff(survey_data, thresholds = thresholds, biomarkerField)
   } else {
     survey_data <- calcThresholds(survey_data, thresholds = thresholds, biomarkerField)
@@ -448,7 +463,11 @@ SummaryStats <- function(theData,
 
   # Calculate deficiency percentages for all threshold levels
 
-  thresh_agg <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+  if (biomarkerField == "zinc" & ZincCutoff == TRUE){
+    thresh_agg <- zincCalcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+  } else {
+    thresh_agg <- calcDeficiency(survey_data, thresholds, aggregationField, DHSdesign)
+  }
 
   # Calculate equivalent deficiency percentages for whole un-aggregated dataset
   # using new 'total' column
