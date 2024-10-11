@@ -176,7 +176,7 @@ zincCutoff <- function(survey_data, biomarkerField, thresholds){
 
 
     # test to make sure that a person only belongs to one zinc deficiency category
-     survey_data[[thresholdName]] <- cond
+    survey_data[[thresholdName]] <- cond
     # threshold_cats <- survey_data [,names(thresholds)]
     # check_thresholds <- apply(threshold_cats, 1, sum)
     # tab <- table(check_thresholds > 1, useNA = "always")
@@ -349,11 +349,11 @@ calcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign)
 
 zincCalcDeficiency <- function(survey_data, thresholds, aggregationField, DHSdesign) {
   thresh <- list()
-    thresh[["deficiency"]] <- survey::svyby(as.formula(paste("~", "deficiency")), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
-    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "survey_data[, aggregationField]"] <- "aggregation"
-    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_l"] <- "confidenceIntervalLower"
-    names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_u"] <- "confidenceIntervalUpper"
-    rownames(thresh[["deficiency"]]) <- NULL
+  thresh[["deficiency"]] <- survey::svyby(as.formula(paste("~", "deficiency")), ~ survey_data[, aggregationField], DHSdesign, survey::svyciprop, vartype = "ci")
+  names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "survey_data[, aggregationField]"] <- "aggregation"
+  names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_l"] <- "confidenceIntervalLower"
+  names(thresh[["deficiency"]])[names(thresh[["deficiency"]]) == "ci_u"] <- "confidenceIntervalUpper"
+  rownames(thresh[["deficiency"]]) <- NULL
   return(thresh)
 }
 
@@ -472,7 +472,11 @@ SummaryStats <- function(theData,
   # Calculate equivalent deficiency percentages for whole un-aggregated dataset
   # using new 'total' column
   survey_data$total <- 'total'
-  thresh_total <-calcDeficiency(survey_data, thresholds, 'total', DHSdesign)
+  if (biomarkerField == "zinc" & ZincCutoff == TRUE){
+    thresh_total <- zincCalcDeficiency(survey_data, thresholds, 'total', DHSdesign)
+  } else {
+    thresh_total <- calcDeficiency(survey_data, thresholds, 'total', DHSdesign)
+  }
 
   # Calculate weighted survey summary statistics
 
