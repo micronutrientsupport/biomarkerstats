@@ -1,4 +1,4 @@
-file:///C:/Users/FannySandalinas/OneDrive%20-%20London%20School%20of%20Hygiene%20and%20Tropical%20Medicine/R/biomarkerstats-master/biomarkerstats-master/tests/development_tests/doc.html
+
 
 
 Hello, biomarkerstats is a package that computes summary statistics for National Micronutrient Surveys. 
