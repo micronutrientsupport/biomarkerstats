@@ -70,11 +70,7 @@ Change working directory to this (source) file's directory
 
 (Session \> Set Working Directory \> To Source File Location)
 
-::: cell
-``` {.r .cell-code}
-source("R/SummaryStats.R")
-```
-:::
+    source("R/SummaryStats.R")
 
 You will also need to download a few files that are all available in the
 same folder. You do not need to do anything with these files, just make
@@ -97,16 +93,12 @@ Place data files in the same location as this script.
 
 download and load a few packages that are needed
 
-::: cell
-``` {.r .cell-code}
-rm(list = ls()) 
-library(srvyr) 
-library(jtools) 
-library(survey) 
-library(dplyr) 
-library(BRINDA)
-```
-:::
+    rm(list = ls()) 
+    library(srvyr) 
+    library(jtools) 
+    library(survey) 
+    library(dplyr) 
+    library(BRINDA)
 
 ## Preparation of the data
 
@@ -149,16 +141,13 @@ biomarkers and therefore the approach should be conservative, but
 removing values that are likely to be resulting from errors in data
 entry or biologically implausible.
 
-::: cell
-``` {.r .cell-code}
-## Run SummaryStats function over one dataset and micronutrient
+
+    ## Run SummaryStats function over one dataset and micronutrient
 
 
-prefix <- "S3-"
-biomarkerField <- "haemoglobin"
-group_id <- "WRA"
-```
-:::
+    prefix <- "S3-"
+    biomarkerField <- "haemoglobin"
+    group_id <- "WRA"
 
 The function can work on several population groups of interest:
 Pre-school children, school-age children, women of reproductive age and
@@ -170,21 +159,13 @@ It is important to chose the right population of interest as specific
 cutoff are and the use of inflammation adjustment also depends on the
 population group that has been chosen.
 
-::: cell
-``` {.r .cell-code}
-knitr::opts_chunk$set(echo = TRUE)
-aggregationField <- "region"
-```
-:::
+    knitr::opts_chunk$set(echo = TRUE)
+    aggregationField <- "region"
 
 Currently, the function can disaggregate results by region, wealth
 quintiles and residence (urban or rural)
 
-::: cell
-``` {.r .cell-code}
-RunSurveyWeights <- TRUE
-```
-:::
+    RunSurveyWeights <- TRUE
 
 The R survey package is used in the function to be able to take survey
 characteristics into account. This is particularly important for the
@@ -193,21 +174,13 @@ variations between individuals of the same cluster, and the same strata
 than in the entire sample. If these characteristics are not entered,
 then the results will not be representative of the total sample.
 
-::: cell
-``` {.r .cell-code}
-Brinda <- TRUE
-```
-:::
+    Brinda <- TRUE
 
 The inflammation adjustment can be performed using AGP or CRP only. For
 more information related to the inflammation adjustment using the BRINDA
 package, refer to Luo et al.
 
-::: cell
-``` {.r .cell-code}
-HaemAltAdjust <- TRUE
-```
-:::
+    HaemAltAdjust <- TRUE
 
 Heamoglobin increases with altitude and therefore haemoglobin values
 should be adjusted for altitude so that they can be compared to
@@ -215,11 +188,7 @@ sea-level values. The default argument is set to TRUE, if you would not
 like to apply this adjustment set HaemAltAdjust = FALSE The adjustement
 follows the equation described in Sharma et al.
 
-::: cell
-``` {.r .cell-code}
-HaemSmokeAdjust <- TRUE
-```
-:::
+    HaemSmokeAdjust <- TRUE
 
 Smoking increases haemoglobin values and therefore haemoglobin values
 should be adjusted for smoking status, so they can be compared to
