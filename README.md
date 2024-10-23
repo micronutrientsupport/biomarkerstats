@@ -70,7 +70,9 @@ Change working directory to this (source) file's directory
 
 (Session \> Set Working Directory \> To Source File Location)
 
-    source("R/SummaryStats.R")
+``` r
+source("../../R/SummaryStats.R")
+```
 
 You will also need to download a few files that are all available in the
 same folder. You do not need to do anything with these files, just make
@@ -143,13 +145,15 @@ biomarkers and therefore the approach should be conservative, but
 removing values that are likely to be resulting from errors in data
 entry or biologically implausible.
 
+``` r
 
-    ## Run SummaryStats function over one dataset and micronutrient
+## Run SummaryStats function over one dataset and micronutrient
 
 
-    prefix <- "S3-"
-    biomarkerField <- "haemoglobin"
-    group_id <- "WRA"
+prefix <- "S3-"
+biomarkerField <- "haemoglobin"
+group_id <- "WRA"
+```
 
 The function can work on several population groups of interest:
 Pre-school children, school-age children, women of reproductive age and
@@ -161,13 +165,17 @@ It is important to chose the right population of interest as specific
 cutoff are and the use of inflammation adjustment also depends on the
 population group that has been chosen.
 
-    knitr::opts_chunk$set(echo = TRUE)
-    aggregationField <- "region"
+``` r
+knitr::opts_chunk$set(echo = TRUE)
+aggregationField <- "region"
+```
 
 Currently, the function can disaggregate results by region, wealth
 quintiles and residence (urban or rural)
 
-    RunSurveyWeights <- TRUE
+``` r
+RunSurveyWeights <- TRUE
+```
 
 The R survey package is used in the function to be able to take survey
 characteristics into account. This is particularly important for the
@@ -176,13 +184,17 @@ variations between individuals of the same cluster, and the same strata
 than in the entire sample. If these characteristics are not entered,
 then the results will not be representative of the total sample.
 
-    Brinda <- TRUE
+``` r
+Brinda <- TRUE
+```
 
 The inflammation adjustment can be performed using AGP or CRP only. For
 more information related to the inflammation adjustment using the BRINDA
 package, refer to Luo et al.
 
-    HaemAltAdjust <- TRUE
+``` r
+HaemAltAdjust <- TRUE
+```
 
 Heamoglobin increases with altitude and therefore haemoglobin values
 should be adjusted for altitude so that they can be compared to
@@ -190,7 +202,9 @@ sea-level values. The default argument is set to TRUE, if you would not
 like to apply this adjustment set HaemAltAdjust = FALSE The adjustement
 follows the equation described in Sharma et al.
 
-    HaemSmokeAdjust <- TRUE
+``` r
+HaemSmokeAdjust <- TRUE
+```
 
 Smoking increases haemoglobin values and therefore haemoglobin values
 should be adjusted for smoking status, so they can be compared to
@@ -202,26 +216,32 @@ the equation described in Sharma et al.
 
 Load data file
 
-    load(file=paste0("prefix, biomarkerField, "-", group_id, "-", aggregationField, "-theData.rda"))
+``` r
+load(file=paste0(prefix, biomarkerField, "-", group_id, "-", aggregationField, "-theData.rda"))
+```
 
 # Load thresholds file
 
-    load(file=paste0(biomarkerField, "-", group_id, "-thresholds.rda"))
+``` r
+load(file=paste0(biomarkerField, "-", group_id, "-thresholds.rda"))
+```
 
 Make sure that the arguments of the function equal the same as the
 loaded data and thresholds file
 
-    source("R/SummaryStats.R")
-    output <- SummaryStats(theData = theData,
-                           biomarkerField = "haemoglobin",
-                           aggregationField = "region",
-                           group_id = "WRA",
-                           thresholds = thresholds,
-                           RunSurveyWeights = TRUE,
-                           Brinda = TRUE,
-                           HaemAltAdjust = TRUE,
-                           HaemSmokeAdjust = TRUE,
-                           ZincCutoff = TRUE)
+``` r
+source("../../R/SummaryStats.R")
+output <- SummaryStats(theData = theData,
+                       biomarkerField = "haemoglobin",
+                       aggregationField = "region",
+                       group_id = "WRA",
+                       thresholds = thresholds,
+                       RunSurveyWeights = TRUE,
+                       Brinda = TRUE,
+                       HaemAltAdjust = TRUE,
+                       HaemSmokeAdjust = TRUE,
+                       ZincCutoff = TRUE)
+```
 
 ## R Markdown
 
