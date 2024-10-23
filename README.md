@@ -93,12 +93,16 @@ Place data files in the same location as this script.
 
 download and load a few packages that are needed
 
-    rm(list = ls()) 
-    library(srvyr) 
-    library(jtools) 
-    library(survey) 
-    library(dplyr) 
-    library(BRINDA)
+::: cell
+``` {.r .cell-code}
+rm(list = ls()) 
+library(srvyr) 
+library(jtools) 
+library(survey) 
+library(dplyr) 
+library(BRINDA)
+```
+:::
 
 ## Preparation of the data
 
